@@ -63,7 +63,36 @@ export function SignupForm() {
       }
 
       if (data.user) {
-        // User will be created automatically via trigger
+        // Insert user record with correct type
+        const { error: userError } = await supabase
+          .from('users')
+          .upsert({
+            id: data.user.id,
+            email: data.user.email!,
+            user_type: userType
+          });
+
+        if (userError) {
+          console.error('Error creating user:', userError);
+        }
+
+        // If user is an editor, create editor profile
+        if (userType === "editor") {
+          const { error: profileError } = await supabase
+            .from('editor_profiles')
+            .insert({
+              user_id: data.user.id,
+              name: data.user.email?.split('@')[0] || 'Editor',
+              bio: '',
+              tier_level: 'free',
+              availability_status: 'available'
+            });
+
+          if (profileError) {
+            console.error('Error creating editor profile:', profileError);
+          }
+        }
+
         // Redirect to appropriate dashboard
         if (userType === "editor") {
           router.push("/dashboard/editor");

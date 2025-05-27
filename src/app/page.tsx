@@ -6,37 +6,6 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      {/* Navigation */}
-      <nav className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <Play className="h-8 w-8 text-purple-600" />
-              <span className="text-2xl font-bold gradient-text">CutBase</span>
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href="/browse" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Browse Editors
-              </Link>
-              <Link href="/how-it-works" className="text-gray-600 hover:text-gray-900 transition-colors">
-                How It Works
-              </Link>
-              <Link href="/pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Pricing
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/login">
-                <Button variant="ghost">Sign In</Button>
-              </Link>
-              <Link href="/signup">
-                <Button>Get Started</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -56,7 +25,7 @@ export default function HomePage() {
                   Browse Editors
                 </Button>
               </Link>
-              <Link href="/signup?type=editor">
+              <Link href="/auth/register?type=editor">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto">
                   Join as Editor
                 </Button>
@@ -182,12 +151,12 @@ export default function HomePage() {
             Join thousands of creators and editors who trust CutBase for their video projects.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/signup?type=client">
+            <Link href="/auth/register?type=client">
               <Button size="lg" variant="secondary" className="w-full sm:w-auto">
                 Post Your Project
               </Button>
             </Link>
-            <Link href="/signup?type=editor">
+            <Link href="/auth/register?type=editor">
               <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-purple-600">
                 Start Editing
               </Button>

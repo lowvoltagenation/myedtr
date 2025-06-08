@@ -29,6 +29,7 @@ import {
   X,
   ChevronDown
 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 interface UserProfile {
   id: string;
@@ -170,16 +171,16 @@ export function Header() {
 
   return (
     <>
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-background border-b border-border sticky top-0 z-50 backdrop-blur-sm bg-background/95">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">C</span>
+                <div className="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">M</span>
                 </div>
-                <span className="text-xl font-bold text-gray-900">CutBase</span>
+                <span className="text-xl font-bold text-foreground">MyEdtr</span>
               </Link>
             </div>
 
@@ -187,8 +188,8 @@ export function Header() {
             <nav className="hidden md:flex items-center space-x-8">
               <Link 
                 href="/browse" 
-                className={`text-sm font-medium transition-colors hover:text-purple-600 ${
-                  pathname === '/browse' ? 'text-purple-600' : 'text-gray-700'
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  pathname === '/browse' ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
                 Browse Editors
@@ -196,8 +197,8 @@ export function Header() {
               {user && profile?.user_type === 'client' && (
                 <Link 
                   href="/dashboard/client" 
-                  className={`text-sm font-medium transition-colors hover:text-purple-600 ${
-                    pathname?.startsWith('/dashboard/client') ? 'text-purple-600' : 'text-gray-700'
+                  className={`text-sm font-medium transition-colors hover:text-primary ${
+                    pathname?.startsWith('/dashboard/client') ? 'text-primary' : 'text-muted-foreground'
                   }`}
                 >
                   Dashboard
@@ -206,8 +207,8 @@ export function Header() {
               {user && profile?.user_type === 'editor' && (
                 <Link 
                   href="/dashboard/editor" 
-                  className={`text-sm font-medium transition-colors hover:text-purple-600 ${
-                    pathname?.startsWith('/dashboard/editor') ? 'text-purple-600' : 'text-gray-700'
+                  className={`text-sm font-medium transition-colors hover:text-primary ${
+                    pathname?.startsWith('/dashboard/editor') ? 'text-primary' : 'text-muted-foreground'
                   }`}
                 >
                   Dashboard
@@ -215,8 +216,8 @@ export function Header() {
               )}
               <Link 
                 href="/about" 
-                className={`text-sm font-medium transition-colors hover:text-purple-600 ${
-                  pathname === '/about' ? 'text-purple-600' : 'text-gray-700'
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  pathname === '/about' ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
                 How it Works
@@ -227,13 +228,13 @@ export function Header() {
             <div className="hidden lg:flex flex-1 max-w-lg mx-8">
               <form onSubmit={handleSearch} className="w-full">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
                     type="text"
                     placeholder="Search for video editing services..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 w-full border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                    className="pl-10 pr-4 py-2 w-full"
                   />
                 </div>
               </form>
@@ -241,6 +242,9 @@ export function Header() {
 
             {/* Right Side */}
             <div className="flex items-center space-x-4">
+              {/* Theme Toggle */}
+              <ThemeToggle />
+              
               {loading ? (
                 <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
               ) : user ? (
@@ -273,7 +277,7 @@ export function Header() {
                         />
                       ) : (
                         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white text-sm font-bold">
+                          <div className="h-8 w-8 rounded-full gradient-bg flex items-center justify-center text-white text-sm font-bold">
                             {profile?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
                           </div>
                         </Button>

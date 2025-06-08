@@ -169,14 +169,14 @@ export default function AboutPage() {
         <div className="max-w-6xl mx-auto text-center">
           <div className="mb-8">
             <Badge className="bg-purple-100 text-purple-700 px-4 py-2 text-sm font-medium">
-              How CutBase Works
+              How MyEdtr Works
             </Badge>
           </div>
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
             Connect. Collaborate. Create.
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-            CutBase is the premier marketplace connecting content creators with professional video editors. 
+            MyEdtr is the premier marketplace connecting content creators with professional video editors. 
             Whether you need a quick edit or a complete production, we make it easy to find the perfect collaborator.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -200,7 +200,7 @@ export default function AboutPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Why Choose CutBase?
+              Why Choose MyEdtr?
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               We've built the most comprehensive platform for video editing collaboration, 
@@ -383,7 +383,7 @@ export default function AboutPage() {
             Ready to Get Started?
           </h2>
           <p className="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of creators and editors who are already collaborating on CutBase. 
+            Join thousands of creators and editors who are already collaborating on MyEdtr. 
             Your next great video is just a click away.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -411,7 +411,7 @@ export default function AboutPage() {
                 <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-lg">C</span>
                 </div>
-                <span className="text-xl font-bold text-white">CutBase</span>
+                <span className="text-xl font-bold text-white">MyEdtr</span>
               </div>
               <p className="text-gray-400 mb-4 max-w-md">
                 The premier marketplace for video editing collaboration. Connect with professional editors 
@@ -447,7 +447,7 @@ export default function AboutPage() {
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center">
             <p className="text-gray-400">
-              © 2024 CutBase. All rights reserved.
+              © 2024 MyEdtr. All rights reserved.
             </p>
           </div>
         </div>

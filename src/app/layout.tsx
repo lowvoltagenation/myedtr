@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -14,24 +15,24 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CutBase - Video Editor Marketplace",
+  title: "MyEdtr - Video Editor Marketplace",
   description: "Connect with professional video editors for your projects. Find talented editors, showcase your portfolio, and grow your video editing business.",
   keywords: ["video editing", "freelance", "marketplace", "video editors", "motion graphics", "color grading"],
-  authors: [{ name: "CutBase Team" }],
-  creator: "CutBase",
+  authors: [{ name: "MyEdtr Team" }],
+  creator: "MyEdtr",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://cutbase.com",
-    title: "CutBase - Video Editor Marketplace",
+    url: "https://myedtr.com",
+    title: "MyEdtr - Video Editor Marketplace",
     description: "Connect with professional video editors for your projects",
-    siteName: "CutBase",
+    siteName: "MyEdtr",
   },
   twitter: {
     card: "summary_large_image",
-    title: "CutBase - Video Editor Marketplace",
+    title: "MyEdtr - Video Editor Marketplace",
     description: "Connect with professional video editors for your projects",
-    creator: "@cutbase",
+    creator: "@myedtr",
   },
   robots: {
     index: true,
@@ -54,10 +55,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased theme-transition`}
       >
-        <Header />
-        {children}
+        <ThemeProvider>
+          <Header />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

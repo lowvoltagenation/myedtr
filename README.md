@@ -1,4 +1,4 @@
-# CutBase - Video Editor Marketplace
+# MyEdtr - Video Editor Marketplace
 
 A modern marketplace connecting clients with professional video editors. Built with Next.js 14, Supabase, and TypeScript.
 

@@ -8,8 +8,10 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-            <Play className="h-8 w-8 text-purple-600" />
-            <span className="text-2xl font-bold gradient-text">CutBase</span>
+            <div className="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-lg">M</span>
+            </div>
+            <span className="text-2xl font-bold gradient-text">MyEdtr</span>
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
           <p className="text-gray-600">Sign in to your account to continue</p>

@@ -253,9 +253,9 @@ export function Header() {
                 Browse Editors
               </Link>
               <Link 
-                href="/how-it-works" 
+                href="/about" 
                 className={`text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === '/how-it-works' ? 'text-primary' : 'text-muted-foreground'
+                  pathname === '/about' ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
                 How it Works
@@ -456,7 +456,7 @@ export function Header() {
               </Link>
               
               <Link
-                href="/how-it-works"
+                href="/about"
                 className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-foreground hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-50 dark:hover:bg-muted"
                 onClick={() => setMobileMenuOpen(false)}
               >

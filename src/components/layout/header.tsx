@@ -43,6 +43,7 @@ export function Header() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchingProfile, setFetchingProfile] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
@@ -50,21 +51,49 @@ export function Header() {
   const supabase = createClient();
 
   const fetchProfile = useCallback(async (userId: string, sessionUser: any) => {
+    // Prevent multiple simultaneous calls
+    if (fetchingProfile) {
+      console.log('Profile fetch already in progress, skipping...');
+      return;
+    }
+
+    setFetchingProfile(true);
+    
     try {
+      console.log('Fetching profile for user:', userId);
+      
       // Check if user is an editor or client
-      const { data: userData } = await supabase
+      const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('user_type')
+        .select('user_type, avatar_url, name, bio, location')
         .eq('id', userId)
         .single();
 
+      if (userError) {
+        console.error('Error fetching user data:', userError);
+        // Fallback to basic profile if user query fails
+        setProfile({
+          id: userId,
+          name: sessionUser?.email?.split('@')[0] || 'User',
+          user_type: 'client',
+          tier_level: 'free'
+        });
+        return;
+      }
+
+      console.log('User data fetched:', userData);
+
       if (userData?.user_type === 'editor') {
         // Get editor profile with explicit avatar_url selection
-        const { data: editorProfile } = await supabase
+        const { data: editorProfile, error: profileError } = await supabase
           .from('editor_profiles')
           .select('id, name, avatar_url, tier_level')
           .eq('user_id', userId)
           .single();
+
+        if (profileError) {
+          console.error('Error fetching editor profile:', profileError);
+        }
 
         if (editorProfile) {
           setProfile({
@@ -81,12 +110,13 @@ export function Header() {
           });
         }
       } else {
-        // For clients, we'll use user data directly or default
+        // For clients, use user data from users table
         setProfile({
           id: userId,
-          name: sessionUser?.email?.split('@')[0] || 'Client',
+          name: userData?.name || sessionUser?.email?.split('@')[0] || 'Client',
           user_type: userData?.user_type || 'client',
-          tier_level: 'free'
+          tier_level: 'free',
+          avatar_url: userData?.avatar_url
         });
       }
     } catch (error) {
@@ -98,17 +128,26 @@ export function Header() {
         user_type: 'client',
         tier_level: 'free'
       });
+    } finally {
+      setFetchingProfile(false);
     }
-  }, [supabase]);
+  }, [supabase]); // Remove fetchingProfile from dependencies to prevent infinite loop
 
   useEffect(() => {
     // Get initial session
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
+      const newUser = session?.user || null;
       
-      if (session?.user) {
-        await fetchProfile(session.user.id, session.user);
+      // Only update if user actually changed
+      if (newUser?.id !== user?.id) {
+        setUser(newUser);
+        
+        if (newUser) {
+          await fetchProfile(newUser.id, newUser);
+        } else {
+          setProfile(null);
+        }
       }
       setLoading(false);
     };
@@ -118,16 +157,27 @@ export function Header() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setUser(session?.user || null);
-        if (session?.user) {
-          await fetchProfile(session.user.id, session.user);
-        } else {
-          setProfile(null);
+        const newUser = session?.user || null;
+        
+        // Only update if user actually changed
+        if (newUser?.id !== user?.id) {
+          setUser(newUser);
+          if (newUser) {
+            await fetchProfile(newUser.id, newUser);
+          } else {
+            setProfile(null);
+          }
         }
       }
     );
 
-    // Listen for profile updates from other components
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [fetchProfile, user?.id]);
+
+  // Separate useEffect for profile update events to avoid dependency issues
+  useEffect(() => {
     const handleProfileUpdate = () => {
       if (user) {
         // Force a complete refresh
@@ -139,10 +189,9 @@ export function Header() {
     window.addEventListener('profileUpdated', handleProfileUpdate);
 
     return () => {
-      subscription.unsubscribe();
       window.removeEventListener('profileUpdated', handleProfileUpdate);
     };
-  }, [supabase.auth, user, fetchProfile]);
+  }, [user, fetchProfile]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -267,21 +316,21 @@ export function Header() {
                   {/* User Dropdown */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      {profile?.avatar_url ? (
-                        <img
-                          src={profile.avatar_url}
-                          alt={profile?.name || "User"}
-                          className="h-8 w-8 rounded-full object-cover border-2 border-red-500 cursor-pointer"
-                          onLoad={() => console.log('Header avatar loaded!')}
-                          onError={(e) => console.error('Header avatar failed:', e)}
-                        />
-                      ) : (
-                        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                      <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
+                        {profile?.avatar_url ? (
+                          <img
+                            src={profile.avatar_url}
+                            alt={profile?.name || "User"}
+                            className="h-8 w-8 rounded-full object-cover"
+                            onLoad={() => console.log('Header avatar loaded!')}
+                            onError={(e) => console.error('Header avatar failed:', e)}
+                          />
+                        ) : (
                           <div className="h-8 w-8 rounded-full gradient-bg flex items-center justify-center text-white text-sm font-bold">
                             {profile?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
                           </div>
-                        </Button>
-                      )}
+                        )}
+                      </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-64" align="end" forceMount>
                       <DropdownMenuLabel className="font-normal">

@@ -129,13 +129,26 @@ export default function EditProfilePage() {
           portfolio_urls: profileData.portfolio_urls || []
         });
       } else {
-        // For clients, create a basic profile structure
+        // For clients, get data from users table
+        const { data: clientData, error: clientError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (clientError) {
+          setError('User profile not found');
+          return;
+        }
+
         const profileData = {
           id: session.user.id,
-          name: session.user.email?.split('@')[0] || 'Client',
-          bio: '',
+          name: clientData.name || session.user.email?.split('@')[0] || 'Client',
+          bio: clientData.bio || '',
           user_type: 'client' as const,
-          tier_level: 'free' as const
+          tier_level: 'free' as const,
+          avatar_url: clientData.avatar_url,
+          location: clientData.location
         };
 
         setProfile(profileData);
@@ -143,7 +156,7 @@ export default function EditProfilePage() {
           name: profileData.name,
           bio: profileData.bio,
           website_url: "",
-          location: "",
+          location: profileData.location || "",
           hourly_rate: "",
           specialties: [],
           availability_status: "available",
@@ -216,6 +229,14 @@ export default function EditProfilePage() {
           .eq('user_id', user.id);
 
         if (updateError) throw updateError;
+      } else if (profile?.user_type === 'client') {
+        // For clients, update the users table with avatar_url
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ avatar_url: avatarUrl })
+          .eq('id', user.id);
+
+        if (updateError) throw updateError;
       }
 
       // Update local state
@@ -262,6 +283,22 @@ export default function EditProfilePage() {
           .from('editor_profiles')
           .update(updateData)
           .eq('user_id', user.id);
+
+        if (error) throw error;
+      } else if (profile.user_type === 'client') {
+        // For clients, update the users table
+        const updateData = {
+          name: formData.name,
+          bio: formData.bio,
+          location: formData.location,
+          avatar_url: profile.avatar_url,
+          updated_at: new Date().toISOString()
+        };
+
+        const { error } = await supabase
+          .from('users')
+          .update(updateData)
+          .eq('id', user.id);
 
         if (error) throw error;
       }
@@ -348,7 +385,7 @@ export default function EditProfilePage() {
                   </Button>
                 </Link>
               )}
-              <Link href="/dashboard">
+              <Link href={profile.user_type === 'editor' ? '/dashboard/editor' : '/dashboard/client'}>
                 <Button variant="ghost">
                   Back to Dashboard
                 </Button>

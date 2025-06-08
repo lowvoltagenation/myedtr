@@ -14,6 +14,10 @@ export type Database = {
           id: string
           email: string
           user_type: 'editor' | 'client'
+          avatar_url: string | null
+          name: string | null
+          bio: string | null
+          location: string | null
           created_at: string
           updated_at: string
         }
@@ -21,6 +25,10 @@ export type Database = {
           id?: string
           email: string
           user_type: 'editor' | 'client'
+          avatar_url?: string | null
+          name?: string | null
+          bio?: string | null
+          location?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -28,6 +36,10 @@ export type Database = {
           id?: string
           email?: string
           user_type?: 'editor' | 'client'
+          avatar_url?: string | null
+          name?: string | null
+          bio?: string | null
+          location?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -96,6 +108,12 @@ export type Database = {
           status: 'open' | 'assigned' | 'in_progress' | 'completed' | 'cancelled'
           video_style: string | null
           duration_minutes: number | null
+          project_type: string | null
+          urgency: string | null
+          requirements: string | null
+          video_length: string | null
+          style_preferences: string | null
+          additional_notes: string | null
           created_at: string
           updated_at: string
         }
@@ -109,6 +127,12 @@ export type Database = {
           status?: 'open' | 'assigned' | 'in_progress' | 'completed' | 'cancelled'
           video_style?: string | null
           duration_minutes?: number | null
+          project_type?: string | null
+          urgency?: string | null
+          requirements?: string | null
+          video_length?: string | null
+          style_preferences?: string | null
+          additional_notes?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -122,6 +146,12 @@ export type Database = {
           status?: 'open' | 'assigned' | 'in_progress' | 'completed' | 'cancelled'
           video_style?: string | null
           duration_minutes?: number | null
+          project_type?: string | null
+          urgency?: string | null
+          requirements?: string | null
+          video_length?: string | null
+          style_preferences?: string | null
+          additional_notes?: string | null
           created_at?: string
           updated_at?: string
         }

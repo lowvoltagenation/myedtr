@@ -42,23 +42,28 @@ export default async function ClientDashboard() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Client Dashboard</h1>
               <p className="text-gray-600">Manage your projects and find the perfect editors</p>
             </div>
-            <div className="flex gap-3">
-              <Link href="/messages">
-                <Button variant="outline" size="lg" className="w-full md:w-auto">
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Messages
-                </Button>
-              </Link>
-              <Link href="/subscription">
-                <Button variant="ghost" size="lg" className="w-full md:w-auto">
+            <div className="flex flex-col md:flex-row gap-3">
+              {/* Mobile: Upgrade Plan on top, full width */}
+              <Link href="/pricing" className="md:order-2">
+                <Button variant="ghost" size="lg" className="w-full">
                   <Calendar className="w-4 h-4 mr-2" />
                   Upgrade Plan
                 </Button>
               </Link>
-              <Link href="/dashboard/client/post-project">
-                <Button size="lg" className="w-full md:w-auto">
+              
+              {/* Mobile: Post New Project below, full width */}
+              <Link href="/dashboard/client/post-project" className="md:order-3">
+                <Button size="lg" className="w-full">
                   <Plus className="w-4 h-4 mr-2" />
                   Post New Project
+                </Button>
+              </Link>
+              
+              {/* Desktop only: Messages button */}
+              <Link href="/messages" className="hidden md:block md:order-1">
+                <Button variant="outline" size="lg" className="w-auto">
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Messages
                 </Button>
               </Link>
             </div>
@@ -91,7 +96,7 @@ export default async function ClientDashboard() {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="hidden md:block">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <MessageCircle className="h-8 w-8 text-green-600" />

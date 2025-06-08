@@ -1,4 +1,14 @@
 import { createClient } from "@/lib/supabase/client";
+import { 
+  SubscriptionTier, 
+  SubscriptionStatus, 
+  MetricType, 
+  AnalyticsEventType,
+  getTierInfo,
+  canAccess,
+  hasFeature,
+  getUsageLimit 
+} from '@/types/subscription';
 
 export interface PlanLimits {
   maxProjects: number;
@@ -160,4 +170,300 @@ export function formatLimit(limit: number): string {
 export function formatUsage(current: number, limit: number): string {
   if (limit === -1) return `${current} used`;
   return `${current}/${limit} used`;
-} 
+}
+
+export class SubscriptionService {
+  private supabase = createClient();
+
+  // Get user's current subscription tier
+  async getUserTier(userId: string): Promise<SubscriptionTier> {
+    try {
+      const { data, error } = await this.supabase
+        .from('users')
+        .select('current_tier_id')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      return (data?.current_tier_id as SubscriptionTier) || 'free';
+    } catch (error) {
+      console.error('Error fetching user tier:', error);
+      return 'free'; // Default to free on error
+    }
+  }
+
+  // Check if user can access a feature
+  async canUserAccess(userId: string, requiredTier: SubscriptionTier): Promise<boolean> {
+    const userTier = await this.getUserTier(userId);
+    return canAccess(userTier, requiredTier);
+  }
+
+  // Check if user has a specific feature
+  async userHasFeature(userId: string, feature: string): Promise<boolean> {
+    const userTier = await this.getUserTier(userId);
+    return hasFeature(userTier, feature as any);
+  }
+
+  // Get current usage for a metric in the current period
+  async getCurrentUsage(userId: string, metricType: MetricType): Promise<number> {
+    try {
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const { data, error } = await this.supabase
+        .from('usage_tracking')
+        .select('metric_value')
+        .eq('user_id', userId)
+        .eq('metric_type', metricType)
+        .gte('period_start', monthStart.toISOString())
+        .lte('period_end', monthEnd.toISOString())
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+      return data?.metric_value || 0;
+    } catch (error) {
+      console.error('Error fetching current usage:', error);
+      return 0;
+    }
+  }
+
+  // Check if user can perform an action (usage limit check)
+  async canPerformAction(userId: string, metricType: MetricType): Promise<{
+    canPerform: boolean;
+    currentUsage: number;
+    limit: number | null;
+    tier: SubscriptionTier;
+  }> {
+    const userTier = await this.getUserTier(userId);
+    const currentUsage = await this.getCurrentUsage(userId, metricType);
+    const limit = getUsageLimit(userTier, metricType);
+
+    return {
+      canPerform: limit === null || currentUsage < limit,
+      currentUsage,
+      limit,
+      tier: userTier
+    };
+  }
+
+  // Increment usage counter
+  async incrementUsage(userId: string, metricType: MetricType, incrementBy: number = 1): Promise<void> {
+    try {
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      // Try to update existing record
+      const { data: existingData, error: fetchError } = await this.supabase
+        .from('usage_tracking')
+        .select('id, metric_value')
+        .eq('user_id', userId)
+        .eq('metric_type', metricType)
+        .gte('period_start', monthStart.toISOString())
+        .lte('period_end', monthEnd.toISOString())
+        .single();
+
+      if (existingData) {
+        // Update existing record
+        const { error: updateError } = await this.supabase
+          .from('usage_tracking')
+          .update({ 
+            metric_value: existingData.metric_value + incrementBy,
+            updated_at: now.toISOString()
+          })
+          .eq('id', existingData.id);
+
+        if (updateError) throw updateError;
+      } else {
+        // Create new record
+        const { error: insertError } = await this.supabase
+          .from('usage_tracking')
+          .insert({
+            user_id: userId,
+            metric_type: metricType,
+            metric_value: incrementBy,
+            period_start: monthStart.toISOString(),
+            period_end: monthEnd.toISOString()
+          });
+
+        if (insertError) throw insertError;
+      }
+    } catch (error) {
+      console.error('Error incrementing usage:', error);
+      throw error;
+    }
+  }
+
+  // Track analytics event
+  async trackEvent(
+    eventType: AnalyticsEventType,
+    userId?: string,
+    targetUserId?: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    try {
+      const { error } = await this.supabase
+        .from('analytics_events')
+        .insert({
+          event_type: eventType,
+          user_id: userId || null,
+          target_user_id: targetUserId || null,
+          metadata: metadata || null
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error tracking event:', error);
+      // Don't throw - analytics failures shouldn't break user experience
+    }
+  }
+
+  // Get analytics data for a user (Pro/Featured only)
+  async getAnalytics(userId: string, timeframe: 'week' | 'month' | 'quarter' = 'month') {
+    const userTier = await this.getUserTier(userId);
+    
+    if (!hasFeature(userTier, 'analytics')) {
+      throw new Error('Analytics not available for your subscription tier');
+    }
+
+    const now = new Date();
+    let startDate: Date;
+
+    switch (timeframe) {
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'quarter':
+        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      default: // month
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+
+    try {
+      // Get profile views
+      const { data: profileViews } = await this.supabase
+        .from('analytics_events')
+        .select('created_at')
+        .eq('event_type', 'profile_view')
+        .eq('target_user_id', userId)
+        .gte('created_at', startDate.toISOString());
+
+      // Get messages received
+      const { data: messagesReceived } = await this.supabase
+        .from('analytics_events')
+        .select('created_at')
+        .eq('event_type', 'message_received')
+        .eq('target_user_id', userId)
+        .gte('created_at', startDate.toISOString());
+
+      // Get search appearances
+      const { data: searchAppearances } = await this.supabase
+        .from('analytics_events')
+        .select('created_at')
+        .eq('event_type', 'search_appearance')
+        .eq('target_user_id', userId)
+        .gte('created_at', startDate.toISOString());
+
+      const analytics = {
+        profile_views: profileViews?.length || 0,
+        messages_received: messagesReceived?.length || 0,
+        search_appearances: searchAppearances?.length || 0,
+        timeframe,
+        tier: userTier
+      };
+
+      // Advanced analytics for Featured tier
+      if (userTier === 'featured') {
+        // Add conversion rate calculation
+        const conversionRate = analytics.profile_views > 0 
+          ? (analytics.messages_received / analytics.profile_views * 100).toFixed(1)
+          : '0';
+
+        return {
+          ...analytics,
+          conversion_rate: `${conversionRate}%`,
+          spotlight_data: await this.getSpotlightAnalytics(userId, timeframe)
+        };
+      }
+
+      return analytics;
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      throw error;
+    }
+  }
+
+  // Get spotlight analytics (Featured tier only)
+  private async getSpotlightAnalytics(userId: string, timeframe: string) {
+    try {
+      const { data } = await this.supabase
+        .from('spotlight_rotations')
+        .select('clicks, impressions, week_start')
+        .eq('user_id', userId)
+        .order('week_start', { ascending: false })
+        .limit(timeframe === 'quarter' ? 12 : timeframe === 'month' ? 4 : 1);
+
+      return {
+        total_clicks: data?.reduce((sum, item) => sum + item.clicks, 0) || 0,
+        total_impressions: data?.reduce((sum, item) => sum + item.impressions, 0) || 0,
+        weeks_featured: data?.length || 0
+      };
+    } catch (error) {
+      console.error('Error fetching spotlight analytics:', error);
+      return { total_clicks: 0, total_impressions: 0, weeks_featured: 0 };
+    }
+  }
+
+  // Update user's subscription tier
+  async updateUserTier(userId: string, newTier: SubscriptionTier, subscriptionId?: string): Promise<void> {
+    try {
+      const { error } = await this.supabase
+        .from('users')
+        .update({ 
+          current_tier_id: newTier,
+          subscription_status: newTier === 'free' ? 'free' : 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      // Track the tier change event
+      await this.trackEvent('subscription_upgrade', userId, undefined, {
+        new_tier: newTier,
+        subscription_id: subscriptionId
+      });
+    } catch (error) {
+      console.error('Error updating user tier:', error);
+      throw error;
+    }
+  }
+
+  // Get feature flags for user's tier
+  async getFeatureFlags(userId: string): Promise<Record<string, boolean>> {
+    const userTier = await this.getUserTier(userId);
+    
+    try {
+      const { data: flags } = await this.supabase
+        .from('feature_flags')
+        .select('id, is_enabled, target_tiers')
+        .eq('is_enabled', true);
+
+      const userFlags: Record<string, boolean> = {};
+      
+      flags?.forEach(flag => {
+        userFlags[flag.id] = flag.target_tiers?.includes(userTier) || false;
+      });
+
+      return userFlags;
+    } catch (error) {
+      console.error('Error fetching feature flags:', error);
+      return {};
+    }
+  }
+}
+
+// Export singleton instance
+export const subscriptionService = new SubscriptionService(); 

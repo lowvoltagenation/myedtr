@@ -79,7 +79,7 @@ export default async function EditorDashboard() {
                   Messages
                 </Button>
               </Link>
-              <Link href="/subscription">
+              <Link href="/pricing">
                 <Button variant="ghost" size="lg" className="w-full md:w-auto">
                   <Settings className="w-4 h-4 mr-2" />
                   Upgrade Plan

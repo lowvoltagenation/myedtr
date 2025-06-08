@@ -18,6 +18,8 @@ export type Database = {
           name: string | null
           bio: string | null
           location: string | null
+          current_tier_id: string
+          subscription_status: string
           created_at: string
           updated_at: string
         }
@@ -29,6 +31,8 @@ export type Database = {
           name?: string | null
           bio?: string | null
           location?: string | null
+          current_tier_id?: string
+          subscription_status?: string
           created_at?: string
           updated_at?: string
         }
@@ -40,6 +44,203 @@ export type Database = {
           name?: string | null
           bio?: string | null
           location?: string | null
+          current_tier_id?: string
+          subscription_status?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      subscription_tiers: {
+        Row: {
+          id: string
+          name: string
+          price_monthly: number
+          features: Json
+          created_at: string
+        }
+        Insert: {
+          id: string
+          name: string
+          price_monthly: number
+          features: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          price_monthly?: number
+          features?: Json
+          created_at?: string
+        }
+      }
+      subscriptions: {
+        Row: {
+          id: string
+          user_id: string
+          tier_id: string
+          stripe_subscription_id: string | null
+          stripe_customer_id: string | null
+          status: string
+          current_period_start: string | null
+          current_period_end: string | null
+          cancel_at_period_end: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          tier_id: string
+          stripe_subscription_id?: string | null
+          stripe_customer_id?: string | null
+          status?: string
+          current_period_start?: string | null
+          current_period_end?: string | null
+          cancel_at_period_end?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          tier_id?: string
+          stripe_subscription_id?: string | null
+          stripe_customer_id?: string | null
+          status?: string
+          current_period_start?: string | null
+          current_period_end?: string | null
+          cancel_at_period_end?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      usage_tracking: {
+        Row: {
+          id: string
+          user_id: string
+          metric_type: string
+          metric_value: number
+          period_start: string
+          period_end: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          metric_type: string
+          metric_value?: number
+          period_start: string
+          period_end: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          metric_type?: string
+          metric_value?: number
+          period_start?: string
+          period_end?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      analytics_events: {
+        Row: {
+          id: string
+          user_id: string | null
+          visitor_id: string | null
+          event_type: string
+          target_user_id: string | null
+          metadata: Json | null
+          ip_address: string | null
+          user_agent: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          visitor_id?: string | null
+          event_type: string
+          target_user_id?: string | null
+          metadata?: Json | null
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          visitor_id?: string | null
+          event_type?: string
+          target_user_id?: string | null
+          metadata?: Json | null
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+      }
+      spotlight_rotations: {
+        Row: {
+          id: string
+          user_id: string
+          week_start: string
+          week_end: string
+          position: number
+          clicks: number
+          impressions: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          week_start: string
+          week_end: string
+          position: number
+          clicks?: number
+          impressions?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          week_start?: string
+          week_end?: string
+          position?: number
+          clicks?: number
+          impressions?: number
+          created_at?: string
+        }
+      }
+      feature_flags: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          is_enabled: boolean
+          target_tiers: string[] | null
+          rollout_percentage: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          name: string
+          description?: string | null
+          is_enabled?: boolean
+          target_tiers?: string[] | null
+          rollout_percentage?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          is_enabled?: boolean
+          target_tiers?: string[] | null
+          rollout_percentage?: number
           created_at?: string
           updated_at?: string
         }
@@ -50,15 +251,15 @@ export type Database = {
           user_id: string
           name: string
           bio: string | null
-          hourly_rate: number | null
-          specialties: string[] | null
-          portfolio_urls: string[] | null
-          tier_level: 'free' | 'pro' | 'premium'
-          availability_status: 'available' | 'busy' | 'unavailable'
           avatar_url: string | null
           website_url: string | null
           location: string | null
+          hourly_rate: number | null
+          specialties: string[]
+          tier_level: 'free' | 'pro' | 'premium'
+          availability_status: string
           years_experience: number | null
+          portfolio_urls: string[]
           created_at: string
           updated_at: string
         }
@@ -67,15 +268,15 @@ export type Database = {
           user_id: string
           name: string
           bio?: string | null
-          hourly_rate?: number | null
-          specialties?: string[] | null
-          portfolio_urls?: string[] | null
-          tier_level?: 'free' | 'pro' | 'premium'
-          availability_status?: 'available' | 'busy' | 'unavailable'
           avatar_url?: string | null
           website_url?: string | null
           location?: string | null
+          hourly_rate?: number | null
+          specialties?: string[]
+          tier_level?: 'free' | 'pro' | 'premium'
+          availability_status?: string
           years_experience?: number | null
+          portfolio_urls?: string[]
           created_at?: string
           updated_at?: string
         }
@@ -84,15 +285,15 @@ export type Database = {
           user_id?: string
           name?: string
           bio?: string | null
-          hourly_rate?: number | null
-          specialties?: string[] | null
-          portfolio_urls?: string[] | null
-          tier_level?: 'free' | 'pro' | 'premium'
-          availability_status?: 'available' | 'busy' | 'unavailable'
           avatar_url?: string | null
           website_url?: string | null
           location?: string | null
+          hourly_rate?: number | null
+          specialties?: string[]
+          tier_level?: 'free' | 'pro' | 'premium'
+          availability_status?: string
           years_experience?: number | null
+          portfolio_urls?: string[]
           created_at?: string
           updated_at?: string
         }
@@ -220,6 +421,9 @@ export type Database = {
       tier_level: 'free' | 'pro' | 'premium'
       availability_status: 'available' | 'busy' | 'unavailable'
       project_status: 'open' | 'assigned' | 'in_progress' | 'completed' | 'cancelled'
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }

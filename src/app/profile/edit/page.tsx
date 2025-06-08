@@ -24,6 +24,9 @@ import {
   Eye
 } from "lucide-react";
 import Link from "next/link";
+import { TierBadge } from "@/components/ui/tier-badge";
+import { UsageMeter } from "@/components/ui/usage-meter";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface UserProfile {
   id: string;
@@ -66,6 +69,13 @@ export default function EditProfilePage() {
   const router = useRouter();
   const supabase = createClient();
 
+  // Add subscription hook
+  const subscription = useSubscription(user?.id);
+  const [usageData, setUsageData] = useState({
+    portfolioUploads: 0,
+    messagesSent: 0
+  });
+
   const [formData, setFormData] = useState({
     name: "",
     bio: "",
@@ -78,9 +88,45 @@ export default function EditProfilePage() {
     portfolio_urls: [] as string[]
   });
 
+  // Load usage data
+  const loadUsageData = async () => {
+    if (!user?.id) return;
+
+    try {
+      const [portfolioUsage, messagesUsage] = await Promise.all([
+        subscription.checkUsageLimit('portfolio_uploads'),
+        subscription.checkUsageLimit('messages_sent')
+      ]);
+
+      setUsageData({
+        portfolioUploads: portfolioUsage.currentUsage,
+        messagesSent: messagesUsage.currentUsage
+      });
+    } catch (error) {
+      console.error('Error loading usage data:', error);
+    }
+  };
+
   useEffect(() => {
-    loadProfile();
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        await loadProfile();
+      } else {
+        router.push('/auth/login');
+      }
+    };
+
+    getUser();
   }, []);
+
+  // Load usage data when subscription is ready
+  useEffect(() => {
+    if (user?.id && !subscription.loading) {
+      loadUsageData();
+    }
+  }, [user?.id, subscription.loading]);
 
   const loadProfile = async () => {
     try {
@@ -618,103 +664,140 @@ export default function EditProfilePage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Profile Picture */}
+            {/* Current Subscription */}
             <Card>
               <CardHeader>
-                <CardTitle>Profile Picture</CardTitle>
-                <CardDescription>Upload a professional photo</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  Subscription Status
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex flex-col items-center">
-                  <div className="relative">
-                    {profile.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt={profile.name}
-                        className="w-24 h-24 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white text-2xl font-bold">
-                        {profile.name.charAt(0)}
-                      </div>
-                    )}
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingAvatar}
-                      className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 hover:bg-purple-700 text-white rounded-full flex items-center justify-center transition-colors"
-                    >
-                      {uploadingAvatar ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Camera className="w-4 h-4" />
-                      )}
-                    </button>
+                {!subscription.loading && (
+                  <div className="flex items-center justify-center">
+                    <TierBadge tier={subscription.tier} size="lg" />
                   </div>
-                  <p className="text-sm text-gray-600 text-center mt-2">
-                    Click the camera icon to upload a new photo
-                  </p>
-                  <p className="text-xs text-gray-500 text-center">
-                    Max size: 5MB. Formats: JPG, PNG, GIF
-                  </p>
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  className="hidden"
-                />
+                )}
+
+                {subscription.tier === 'free' && (
+                  <div className="text-center space-y-3">
+                    <p className="text-sm text-gray-600">
+                      You're on the free plan with limited features.
+                    </p>
+                    <Link href="/pricing">
+                      <Button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
+                        Upgrade to Pro
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+
+                {subscription.tier === 'pro' && (
+                  <div className="text-center space-y-3">
+                    <p className="text-sm text-gray-600">
+                      You have access to professional features.
+                    </p>
+                    <Link href="/pricing">
+                      <Button variant="outline" className="w-full">
+                        Upgrade to Featured
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+
+                {subscription.tier === 'featured' && (
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600">
+                      You have access to all premium features!
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Account Info */}
+            {/* Usage Limits */}
             <Card>
               <CardHeader>
-                <CardTitle>Account Information</CardTitle>
+                <CardTitle>Usage This Month</CardTitle>
+                <CardDescription>Track your current usage against plan limits</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Account Type</span>
-                  <Badge variant="outline" className="capitalize">
-                    {profile.user_type}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Plan</span>
-                  <Badge className={`${
-                    profile.tier_level === 'premium' ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' :
-                    profile.tier_level === 'pro' ? 'bg-gradient-to-r from-purple-400 to-purple-600' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
-                    {profile.tier_level}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Email</span>
-                  <span className="text-sm text-gray-900">{user?.email}</span>
-                </div>
+                {!subscription.loading && (
+                  <>
+                    <UsageMeter
+                      metricName="Portfolio Videos"
+                      current={usageData.portfolioUploads}
+                      limit={subscription.tier === 'free' ? 3 : null}
+                      tier={subscription.tier}
+                      showUpgrade={true}
+                    />
+                    
+                    <UsageMeter
+                      metricName="Messages Sent"
+                      current={usageData.messagesSent}
+                      limit={subscription.tier === 'free' ? 5 : subscription.tier === 'pro' ? 50 : null}
+                      tier={subscription.tier}
+                      showUpgrade={true}
+                    />
+                  </>
+                )}
+
+                {subscription.loading && (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Save Button */}
-            <Button 
-              onClick={handleSave} 
-              disabled={saving}
-              className="w-full"
-              size="lg"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
+            {/* Avatar Upload */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Photo</CardTitle>
+                <CardDescription>Upload a professional headshot</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col items-center space-y-4">
+                  {profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt={profile?.name || "Profile"}
+                      className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center border-4 border-white shadow-lg">
+                      <User className="w-12 h-12 text-gray-400" />
+                    </div>
+                  )}
+                  
+                  <div className="w-full">
+                    <label htmlFor="avatar-upload" className="cursor-pointer">
+                      <div className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-400 transition-colors text-center">
+                        {uploadingAvatar ? (
+                          <div className="flex items-center justify-center">
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            Uploading...
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center">
+                            <Upload className="w-4 h-4 mr-2" />
+                            Change Photo
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                    <input
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                      disabled={uploadingAvatar}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

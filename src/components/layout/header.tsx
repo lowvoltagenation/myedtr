@@ -27,9 +27,15 @@ import {
   Bell,
   Menu,
   X,
-  ChevronDown
+  ChevronDown,
+  Eye,
+  Crown,
+  LayoutDashboard
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { TierBadge } from "@/components/ui/tier-badge";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface UserProfile {
   id: string;
@@ -49,6 +55,9 @@ export function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
+
+  // Add subscription hook
+  const subscription = useSubscription(user?.id);
 
   const fetchProfile = useCallback(async (userId: string, sessionUser: any) => {
     // Prevent multiple simultaneous calls
@@ -243,26 +252,6 @@ export function Header() {
               >
                 Browse Editors
               </Link>
-              {user && profile?.user_type === 'client' && (
-                <Link 
-                  href="/dashboard/client" 
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    pathname?.startsWith('/dashboard/client') ? 'text-primary' : 'text-muted-foreground'
-                  }`}
-                >
-                  Dashboard
-                </Link>
-              )}
-              {user && profile?.user_type === 'editor' && (
-                <Link 
-                  href="/dashboard/editor" 
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    pathname?.startsWith('/dashboard/editor') ? 'text-primary' : 'text-muted-foreground'
-                  }`}
-                >
-                  Dashboard
-                </Link>
-              )}
               <Link 
                 href="/about" 
                 className={`text-sm font-medium transition-colors hover:text-primary ${
@@ -332,87 +321,75 @@ export function Header() {
                         )}
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-64" align="end" forceMount>
+                    <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-2">
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center gap-2">
                             <p className="text-sm font-medium leading-none">
-                              {profile?.name || user.email}
+                              {profile?.name || "User"}
                             </p>
-                            <Badge className={`text-xs px-2 py-0.5 ${getTierBadgeColor(profile?.tier_level || 'free')}`}>
-                              {profile?.tier_level || 'free'}
-                            </Badge>
+                            {!subscription.loading && (
+                              <TierBadge tier={subscription.tier} size="sm" />
+                            )}
                           </div>
                           <p className="text-xs leading-none text-muted-foreground">
-                            {user.email}
-                          </p>
-                          <p className="text-xs leading-none text-muted-foreground capitalize">
-                            {profile?.user_type || 'user'}
+                            {user?.email}
                           </p>
                         </div>
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       
-                      {/* Profile Actions */}
-                      <DropdownMenuItem asChild>
-                        <Link href="/profile/edit" className="flex items-center">
-                          <User className="mr-2 h-4 w-4" />
-                          <span>Edit Profile</span>
-                        </Link>
-                      </DropdownMenuItem>
-                      
-                      {profile?.user_type === 'editor' && (
+                      {/* Dashboard Link */}
+                      {profile?.user_type === 'client' && (
                         <DropdownMenuItem asChild>
-                          <Link href={`/editor/${profile.id}`} className="flex items-center">
-                            <Star className="mr-2 h-4 w-4" />
-                            <span>Public Profile</span>
+                          <Link href="/dashboard/client">
+                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            Dashboard
                           </Link>
                         </DropdownMenuItem>
                       )}
-
-                      {/* Dashboard */}
+                      
+                      {profile?.user_type === 'editor' && (
+                        <DropdownMenuItem asChild>
+                          <Link href="/dashboard/editor">
+                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      
+                      {profile?.user_type === 'editor' && (
+                        <DropdownMenuItem asChild>
+                          <Link href={`/editor/${profile.id}`}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Public Profile
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      
                       <DropdownMenuItem asChild>
-                        <Link 
-                          href={profile?.user_type === 'editor' ? '/dashboard/editor' : '/dashboard/client'} 
-                          className="flex items-center"
-                        >
-                          <Briefcase className="mr-2 h-4 w-4" />
-                          <span>Dashboard</span>
-                        </Link>
-                      </DropdownMenuItem>
-
-                      {/* Messages */}
-                      <DropdownMenuItem asChild>
-                        <Link href="/messages" className="flex items-center">
-                          <MessageCircle className="mr-2 h-4 w-4" />
-                          <span>Messages</span>
-                        </Link>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuSeparator />
-
-                      {/* Subscription */}
-                      <DropdownMenuItem asChild>
-                        <Link href="/subscription" className="flex items-center">
-                          <CreditCard className="mr-2 h-4 w-4" />
-                          <span>Subscription</span>
-                        </Link>
-                      </DropdownMenuItem>
-
-                      {/* Settings */}
-                      <DropdownMenuItem asChild>
-                        <Link href="/settings" className="flex items-center">
+                        <Link href="/profile/edit">
                           <Settings className="mr-2 h-4 w-4" />
-                          <span>Settings</span>
+                          Profile Settings
                         </Link>
                       </DropdownMenuItem>
 
-                      <DropdownMenuSeparator />
+                      {subscription.tier === 'free' && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild>
+                            <Link href="/pricing" className="text-purple-600 font-medium">
+                              <Crown className="mr-2 h-4 w-4" />
+                              Upgrade to Pro
+                            </Link>
+                          </DropdownMenuItem>
+                        </>
+                      )}
 
-                      {/* Sign Out */}
-                      <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut}>
                         <LogOut className="mr-2 h-4 w-4" />
-                        <span>Sign Out</span>
+                        Sign out
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -478,26 +455,6 @@ export function Header() {
                 Browse Editors
               </Link>
               
-              {user && profile?.user_type === 'client' && (
-                <Link
-                  href="/dashboard/client"
-                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
-              )}
-              
-              {user && profile?.user_type === 'editor' && (
-                <Link
-                  href="/dashboard/editor"
-                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
-              )}
-              
               <Link
                 href="/about"
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
@@ -509,6 +466,24 @@ export function Header() {
               {user && (
                 <>
                   <hr className="my-2" />
+                  {profile?.user_type === 'client' && (
+                    <Link
+                      href="/dashboard/client"
+                      className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                  )}
+                  {profile?.user_type === 'editor' && (
+                    <Link
+                      href="/dashboard/editor"
+                      className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                  )}
                   <Link
                     href="/messages"
                     className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
@@ -524,7 +499,7 @@ export function Header() {
                     Edit Profile
                   </Link>
                   <Link
-                    href="/subscription"
+                    href="/pricing"
                     className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
                     onClick={() => setMobileMenuOpen(false)}
                   >

@@ -361,7 +361,7 @@ export default function AboutPage() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/subscription">
+                  <Link href="/pricing">
                     <Button 
                       className={`w-full ${index === 1 ? '' : 'variant-outline'}`}
                       variant={index === 1 ? 'default' : 'outline'}
@@ -430,7 +430,7 @@ export default function AboutPage() {
                 <li><Link href="/browse" className="hover:text-white transition-colors">Browse Editors</Link></li>
                 <li><Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link></li>
                 <li><Link href="/messages" className="hover:text-white transition-colors">Messages</Link></li>
-                <li><Link href="/subscription" className="hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
               </ul>
             </div>
             

@@ -482,7 +482,7 @@ export default function SettingsPage() {
                     Edit Profile
                   </Button>
                 </Link>
-                <Link href="/subscription">
+                <Link href="/pricing">
                   <Button variant="outline" className="w-full justify-start">
                     <SettingsIcon className="w-4 h-4 mr-2" />
                     Manage Subscription

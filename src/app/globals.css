@@ -45,7 +45,7 @@
     --accent-foreground: 220 25% 10%;
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 220 15% 90%;
-    --border: 220 25% 8%; /* Dark borders for dark mode */
+    --border: 220 25% 12%; /* Medium dark borders for dark mode */
     --input: 220 25% 12%; /* Input backgrounds closer to card */
     --ring: 312 81% 69%;
   }
@@ -139,6 +139,20 @@
   /* Theme transition */
   .theme-transition * {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  /* Force dark borders for cards in dark mode */
+  .dark .border {
+    border-color: hsl(var(--border)) !important;
+  }
+  
+  /* Manual override for super dark borders */
+  .border-super-dark {
+    border-color: hsl(220 25% 8%) !important;
+  }
+  
+  .dark .border-super-dark {
+    border-color: hsl(220 25% 6%) !important;
   }
   
   /* Enhanced button styles */

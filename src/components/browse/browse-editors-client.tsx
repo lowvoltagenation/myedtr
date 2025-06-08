@@ -66,10 +66,10 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
 
   const getAvailabilityColor = (availability: string) => {
     switch (availability) {
-      case 'available': return 'bg-green-100 text-green-700 border-green-200';
-      case 'busy': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'unavailable': return 'bg-red-100 text-red-700 border-red-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+      case 'available': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
+      case 'busy': return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
+      case 'unavailable': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
+      default: return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
     }
   };
 
@@ -102,7 +102,7 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
           <Button 
             variant="outline" 
             onClick={() => setShowFilters(!showFilters)}
-            className="lg:w-auto"
+            className="lg:w-auto bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200 dark:hover:bg-slate-600"
           >
             <Filter className="w-4 h-4 mr-2" />
             Filters
@@ -208,7 +208,7 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEditors.map(editor => (
-            <Card key={editor.id} className="card-hover group border-gray-200 dark:border-gray-700">
+            <Card key={editor.id} className="card-hover group">
               <CardContent className="p-6">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
@@ -285,7 +285,7 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
                 {/* Actions */}
                 <div className="flex gap-2">
                   <Link href={`/editor/${editor.id}`} className="flex-1">
-                    <Button variant="outline" className="w-full text-sm">
+                    <Button variant="outline" className="w-full text-sm bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200 dark:hover:bg-slate-600">
                       View Profile
                     </Button>
                   </Link>

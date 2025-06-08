@@ -63,29 +63,29 @@ export default async function EditorDashboard() {
   const totalApplications = applications?.length || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Editor Dashboard</h1>
-              <p className="text-gray-600">Welcome back, {profile.display_name || user.email}</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Editor Dashboard</h1>
+              <p className="text-gray-600 dark:text-muted-foreground">Welcome back, {profile.display_name || user.email}</p>
             </div>
-            <div className="flex gap-3">
-              <Link href="/messages">
+            <div className="flex flex-col md:flex-row gap-3">
+              <Link href="/messages" className="hidden md:block">
                 <Button variant="outline" size="lg" className="w-full md:w-auto">
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Messages
                 </Button>
               </Link>
-              <Link href="/pricing">
-                <Button variant="ghost" size="lg" className="w-full md:w-auto">
+              <Link href="/pricing" className="w-full md:w-auto">
+                <Button variant="outline" size="lg" className="w-full md:w-auto bg-gradient-to-r from-purple-500 to-blue-500 text-white border-none hover:from-purple-600 hover:to-blue-600">
                   <Settings className="w-4 h-4 mr-2" />
                   Upgrade Plan
                 </Button>
               </Link>
-              <Link href="/dashboard/editor/browse-projects">
+              <Link href="/dashboard/editor/browse-projects" className="w-full md:w-auto">
                 <Button size="lg" className="w-full md:w-auto">
                   <Briefcase className="w-4 h-4 mr-2" />
                   Browse Projects
@@ -100,10 +100,10 @@ export default async function EditorDashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <Briefcase className="h-8 w-8 text-purple-600" />
+                <Briefcase className="h-8 w-8 text-purple-600 dark:text-purple-400" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Active Applications</p>
-                  <p className="text-2xl font-bold text-gray-900">{activeApplications}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Active Applications</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{activeApplications}</p>
                 </div>
               </div>
             </CardContent>
@@ -112,10 +112,10 @@ export default async function EditorDashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <MessageCircle className="h-8 w-8 text-green-600" />
+                <MessageCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Accepted Projects</p>
-                  <p className="text-2xl font-bold text-gray-900">{acceptedApplications}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Accepted Projects</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{acceptedApplications}</p>
                 </div>
               </div>
             </CardContent>
@@ -124,10 +124,10 @@ export default async function EditorDashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <User className="h-8 w-8 text-blue-600" />
+                <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Applications</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalApplications}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Total Applications</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalApplications}</p>
                 </div>
               </div>
             </CardContent>
@@ -136,9 +136,9 @@ export default async function EditorDashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <Settings className="h-8 w-8 text-orange-600" />
+                <Settings className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Profile Status</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Profile Status</p>
                   <Badge variant={profile.availability_status === 'available' ? 'default' : 'secondary'}>
                     {profile.availability_status}
                   </Badge>
@@ -153,31 +153,31 @@ export default async function EditorDashboard() {
           {/* Profile Overview */}
           <Card>
             <CardHeader>
-              <CardTitle>Your Profile</CardTitle>
-              <CardDescription>Manage your editor profile and portfolio</CardDescription>
+              <CardTitle className="dark:text-white">Your Profile</CardTitle>
+              <CardDescription className="dark:text-muted-foreground">Manage your editor profile and portfolio</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold text-gray-900">{profile.name}</h3>
-                  <p className="text-gray-600 text-sm line-clamp-3">{profile.bio}</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{profile.name}</h3>
+                  <p className="text-gray-600 dark:text-muted-foreground text-sm line-clamp-3">{profile.bio}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 mb-2">Specialties:</p>
+                  <p className="text-sm text-gray-600 dark:text-muted-foreground mb-2">Specialties:</p>
                   <div className="flex flex-wrap gap-1">
                     {profile.specialties?.slice(0, 3).map((specialty: string) => (
-                      <Badge key={specialty} variant="secondary" className="text-xs">
+                      <Badge key={specialty} variant="secondary" className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
                         {specialty}
                       </Badge>
                     ))}
                     {profile.specialties?.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs dark:border-gray-600 dark:text-gray-300">
                         +{profile.specialties.length - 3} more
                       </Badge>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <DollarSign className="h-4 w-4" />
                     <span className="font-semibold">${profile.hourly_rate}/hr</span>
@@ -210,8 +210,8 @@ export default async function EditorDashboard() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Available Projects</CardTitle>
-                  <CardDescription>Browse and apply to new projects</CardDescription>
+                  <CardTitle className="dark:text-white">Available Projects</CardTitle>
+                  <CardDescription className="dark:text-muted-foreground">Browse and apply to new projects</CardDescription>
                 </div>
                 <Link href="/dashboard/editor/browse-projects">
                   <Button variant="outline" size="sm">
@@ -224,9 +224,9 @@ export default async function EditorDashboard() {
               {availableProjects && availableProjects.length > 0 ? (
                 <div className="space-y-4">
                   {availableProjects.slice(0, 3).map((project) => (
-                    <div key={project.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div key={project.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:border-border dark:hover:bg-muted/20 transition-colors">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold text-gray-900">{project.title}</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-white">{project.title}</h3>
                         <div className="flex gap-2">
                           {project.urgency && (
                             <Badge variant={project.urgency === 'rush' ? 'destructive' : project.urgency === 'urgent' ? 'default' : 'secondary'}>
@@ -234,15 +234,15 @@ export default async function EditorDashboard() {
                             </Badge>
                           )}
                           {project.project_type && (
-                            <Badge variant="outline">
+                            <Badge variant="outline" className="dark:border-gray-600 dark:text-gray-300">
                               {project.project_type}
                             </Badge>
                           )}
                         </div>
                       </div>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{project.description}</p>
+                      <p className="text-gray-600 dark:text-muted-foreground text-sm mb-3 line-clamp-2">{project.description}</p>
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-muted-foreground">
                           {project.budget && (
                             <div className="flex items-center gap-1">
                               <DollarSign className="h-4 w-4" />
@@ -267,9 +267,9 @@ export default async function EditorDashboard() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">No new projects available</p>
-                  <p className="text-sm text-gray-500">Check back later for new opportunities</p>
+                  <Briefcase className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-muted-foreground mb-4">No new projects available</p>
+                  <p className="text-sm text-gray-500 dark:text-muted-foreground/70">Check back later for new opportunities</p>
                 </div>
               )}
             </CardContent>
@@ -282,8 +282,8 @@ export default async function EditorDashboard() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Recent Applications</CardTitle>
-                  <CardDescription>Track your project applications</CardDescription>
+                  <CardTitle className="dark:text-white">Recent Applications</CardTitle>
+                  <CardDescription className="dark:text-muted-foreground">Track your project applications</CardDescription>
                 </div>
                 <Link href="/dashboard/editor/applications">
                   <Button variant="outline" size="sm">
@@ -295,11 +295,11 @@ export default async function EditorDashboard() {
             <CardContent>
               <div className="space-y-4">
                 {applications.slice(0, 5).map((application) => (
-                  <div key={application.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={application.id} className="flex items-center justify-between p-4 border rounded-lg dark:border-border">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{application.projects?.title}</h3>
-                      <p className="text-gray-600 text-sm line-clamp-1">{application.projects?.description}</p>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                      <h3 className="font-semibold text-gray-900 dark:text-white">{application.projects?.title}</h3>
+                      <p className="text-gray-600 dark:text-muted-foreground text-sm line-clamp-1">{application.projects?.description}</p>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-muted-foreground/70">
                         <div className="flex items-center gap-1">
                           <DollarSign className="h-4 w-4" />
                           <span>Proposed: ${application.proposed_rate}/hr</span>

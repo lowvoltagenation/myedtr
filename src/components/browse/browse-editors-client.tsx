@@ -29,7 +29,7 @@ interface BrowseEditorsClientProps {
 export function BrowseEditorsClient({ initialEditors, availableSpecialties }: BrowseEditorsClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
-  const [rateRange, setRateRange] = useState<[number, number]>([10, 200]);
+  const [rateRange, setRateRange] = useState<[number, number]>([10, 500]);
   const [showFilters, setShowFilters] = useState(false);
   const [availability, setAvailability] = useState<string>("all");
 
@@ -85,11 +85,11 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
   return (
     <div className="space-y-6">
       {/* Search and Filter Bar */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white dark:bg-card rounded-lg shadow-sm border dark:border-border p-6">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-muted-foreground w-4 h-4" />
             <Input
               placeholder="Search editors by name, skills, or description..."
               value={searchTerm}
@@ -114,7 +114,7 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
           <div className="mt-6 pt-6 border-t space-y-6">
             {/* Specialties */}
             <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Specialties</h3>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-foreground mb-3">Specialties</h3>
               <div className="flex flex-wrap gap-2">
                 {availableSpecialties.map(specialty => (
                   <button
@@ -122,8 +122,8 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
                     onClick={() => handleSpecialtyToggle(specialty)}
                     className={`px-3 py-1 rounded-full text-sm border transition-all ${
                       selectedSpecialties.includes(specialty)
-                        ? "bg-purple-100 border-purple-300 text-purple-700"
-                        : "bg-white border-gray-200 text-gray-700 hover:border-purple-200"
+                        ? "bg-purple-100 border-purple-300 text-purple-700 dark:bg-purple-900/30 dark:border-purple-600 dark:text-purple-300"
+                        : "bg-white border-gray-200 text-gray-700 hover:border-purple-200 dark:bg-card dark:border-border dark:text-foreground dark:hover:border-purple-500"
                     }`}
                   >
                     {specialty}
@@ -134,10 +134,10 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
 
             {/* Rate Range */}
             <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Hourly Rate</h3>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-foreground mb-3">Hourly Rate</h3>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">$</span>
+                  <span className="text-sm text-gray-600 dark:text-muted-foreground">$</span>
                   <Input
                     type="number"
                     value={rateRange[0]}
@@ -146,24 +146,24 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
                     min="10"
                   />
                 </div>
-                <span className="text-gray-500">to</span>
+                <span className="text-gray-500 dark:text-muted-foreground">to</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">$</span>
+                  <span className="text-sm text-gray-600 dark:text-muted-foreground">$</span>
                   <Input
                     type="number"
                     value={rateRange[1]}
-                    onChange={(e) => setRateRange([rateRange[0], parseInt(e.target.value) || 200])}
+                    onChange={(e) => setRateRange([rateRange[0], parseInt(e.target.value) || 500])}
                     className="w-20"
                     min="10"
                   />
                 </div>
-                <span className="text-sm text-gray-600">per hour</span>
+                <span className="text-sm text-gray-600 dark:text-muted-foreground">per hour</span>
               </div>
             </div>
 
             {/* Availability */}
             <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Availability</h3>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-foreground mb-3">Availability</h3>
               <div className="flex gap-2">
                 {[
                   { value: "all", label: "All" },
@@ -176,8 +176,8 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
                     onClick={() => setAvailability(option.value)}
                     className={`px-3 py-1 rounded-lg text-sm border transition-all ${
                       availability === option.value
-                        ? "bg-purple-100 border-purple-300 text-purple-700"
-                        : "bg-white border-gray-200 text-gray-700 hover:border-purple-200"
+                        ? "bg-purple-100 border-purple-300 text-purple-700 dark:bg-purple-900/30 dark:border-purple-600 dark:text-purple-300"
+                        : "bg-white border-gray-200 text-gray-700 hover:border-purple-200 dark:bg-card dark:border-border dark:text-foreground dark:hover:border-purple-500"
                     }`}
                   >
                     {option.label}
@@ -191,7 +191,7 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
 
       {/* Results Count */}
       <div className="flex justify-between items-center">
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-muted-foreground">
           {filteredEditors.length} editor{filteredEditors.length !== 1 ? 's' : ''} found
         </p>
       </div>
@@ -199,16 +199,16 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
       {/* Editors Grid */}
       {filteredEditors.length === 0 ? (
         <div className="text-center py-12">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Search className="w-8 h-8 text-gray-400" />
+          <div className="w-16 h-16 bg-gray-100 dark:bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="w-8 h-8 text-gray-400 dark:text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No editors found</h3>
-          <p className="text-gray-600">Try adjusting your search criteria or filters</p>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-foreground mb-2">No editors found</h3>
+          <p className="text-gray-600 dark:text-muted-foreground">Try adjusting your search criteria or filters</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEditors.map(editor => (
-            <Card key={editor.id} className="card-hover group">
+            <Card key={editor.id} className="card-hover group border-gray-200 dark:border-gray-700">
               <CardContent className="p-6">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
@@ -225,7 +225,7 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
                       </div>
                     )}
                     <div>
-                      <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                      <h3 className="font-semibold text-gray-900 dark:text-foreground group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
                         {editor.name}
                       </h3>
                       <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getAvailabilityColor(editor.availability_status)}`}>
@@ -236,7 +236,7 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
                 </div>
 
                 {/* Bio */}
-                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                <p className="text-gray-600 dark:text-muted-foreground text-sm mb-4 line-clamp-3">
                   {editor.bio}
                 </p>
 
@@ -244,12 +244,12 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
                 <div className="mb-4">
                   <div className="flex flex-wrap gap-1">
                     {editor.specialties.slice(0, 3).map(specialty => (
-                      <Badge key={specialty} variant="secondary" className="text-xs bg-purple-50 text-purple-700">
+                      <Badge key={specialty} variant="secondary" className="text-xs bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
                         {specialty}
                       </Badge>
                     ))}
                     {editor.specialties.length > 3 && (
-                      <Badge variant="secondary" className="text-xs bg-gray-50 text-gray-600">
+                      <Badge variant="secondary" className="text-xs bg-gray-50 text-gray-600 dark:bg-muted dark:text-muted-foreground">
                         +{editor.specialties.length - 3}
                       </Badge>
                     )}
@@ -257,7 +257,7 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
                 </div>
 
                 {/* Details */}
-                <div className="space-y-2 mb-4 text-sm text-gray-600">
+                <div className="space-y-2 mb-4 text-sm text-gray-600 dark:text-muted-foreground">
                   {editor.location && (
                     <div className="flex items-center">
                       <MapPin className="w-3 h-3 mr-1" />
@@ -279,7 +279,7 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties }: Br
                 {/* Rating */}
                 <div className="flex items-center mb-4">
                   <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <span className="text-sm text-gray-600 ml-1">5.0 (New)</span>
+                  <span className="text-sm text-gray-600 dark:text-muted-foreground ml-1">5.0 (New)</span>
                 </div>
 
                 {/* Actions */}

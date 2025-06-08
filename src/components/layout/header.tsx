@@ -429,12 +429,12 @@ export function Header() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-card border-t dark:border-border">
               {/* Mobile Search */}
               <div className="px-3 pb-3">
                 <form onSubmit={handleSearch}>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-muted-foreground w-4 h-4" />
                     <Input
                       type="text"
                       placeholder="Search services..."
@@ -449,7 +449,7 @@ export function Header() {
               {/* Mobile Navigation */}
               <Link
                 href="/browse"
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
+                className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-foreground hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-50 dark:hover:bg-muted"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Browse Editors
@@ -457,7 +457,7 @@ export function Header() {
               
               <Link
                 href="/about"
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
+                className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-foreground hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-50 dark:hover:bg-muted"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 How it Works
@@ -469,7 +469,7 @@ export function Header() {
                   {profile?.user_type === 'client' && (
                     <Link
                       href="/dashboard/client"
-                      className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
+                      className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-foreground hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-50 dark:hover:bg-muted"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Dashboard
@@ -478,7 +478,7 @@ export function Header() {
                   {profile?.user_type === 'editor' && (
                     <Link
                       href="/dashboard/editor"
-                      className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
+                      className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-foreground hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-50 dark:hover:bg-muted"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Dashboard
@@ -486,21 +486,21 @@ export function Header() {
                   )}
                   <Link
                     href="/messages"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
+                    className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-foreground hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-50 dark:hover:bg-muted"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Messages
                   </Link>
                   <Link
                     href="/profile/edit"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
+                    className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-foreground hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-50 dark:hover:bg-muted"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Edit Profile
                   </Link>
                   <Link
                     href="/pricing"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50"
+                    className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-foreground hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-50 dark:hover:bg-muted"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Subscription
@@ -510,7 +510,7 @@ export function Header() {
                       handleSignOut();
                       setMobileMenuOpen(false);
                     }}
-                    className="block w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:bg-gray-50"
+                    className="block w-full text-left px-3 py-2 text-base font-medium text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-muted"
                   >
                     Sign Out
                   </button>

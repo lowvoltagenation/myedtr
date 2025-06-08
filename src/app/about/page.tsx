@@ -163,19 +163,19 @@ const tiers = [
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20">
       {/* Hero Section */}
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
           <div className="mb-8">
-            <Badge className="bg-purple-100 text-purple-700 px-4 py-2 text-sm font-medium">
+            <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-4 py-2 text-sm font-medium">
               How MyEdtr Works
             </Badge>
           </div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+          <h1 className="text-5xl font-bold text-gray-900 dark:text-foreground mb-6">
             Connect. Collaborate. Create.
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
+          <p className="text-xl text-gray-600 dark:text-muted-foreground max-w-3xl mx-auto mb-12">
             MyEdtr is the premier marketplace connecting content creators with professional video editors. 
             Whether you need a quick edit or a complete production, we make it easy to find the perfect collaborator.
           </p>
@@ -196,13 +196,13 @@ export default function AboutPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6 bg-white dark:bg-card">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-foreground mb-4">
               Why Choose MyEdtr?
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-muted-foreground max-w-2xl mx-auto">
               We've built the most comprehensive platform for video editing collaboration, 
               with tools and features designed for both creators and editors.
             </p>
@@ -215,10 +215,10 @@ export default function AboutPage() {
                   <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center mb-4">
                     <feature.icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-foreground mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 dark:text-muted-foreground">
                     {feature.description}
                   </p>
                 </CardContent>
@@ -232,10 +232,10 @@ export default function AboutPage() {
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-foreground mb-4">
               For Content Creators
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-muted-foreground max-w-2xl mx-auto">
               Getting your videos edited is simple with our streamlined process
             </p>
           </div>
@@ -273,13 +273,13 @@ export default function AboutPage() {
       </section>
 
       {/* How It Works - Editors */}
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6 bg-white dark:bg-card">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-foreground mb-4">
               For Video Editors
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-muted-foreground max-w-2xl mx-auto">
               Build your freelance business and find great clients
             </p>
           </div>

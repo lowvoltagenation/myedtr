@@ -20,6 +20,10 @@ export async function POST(request: NextRequest) {
   let event;
 
   try {
+    if (!stripe) {
+      throw new Error('Stripe not initialized');
+    }
+
     // Verify webhook signature
     event = stripe.webhooks.constructEvent(
       body,

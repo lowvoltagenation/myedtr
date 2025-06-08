@@ -51,12 +51,20 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Redirect based on user type
-      const redirectPath = existingUser?.user_type === 'editor' || userType === 'editor' 
-        ? '/dashboard/editor' 
-        : '/dashboard/client'
-      
-      return NextResponse.redirect(`${origin}${redirectPath}`)
+      // Redirect based on user type  
+      if (existingUser?.user_type === 'editor' || userType === 'editor') {
+        // Check if editor profile exists
+        const { data: editorProfile } = await supabase
+          .from('editor_profiles')
+          .select('id')
+          .eq('user_id', data.user.id)
+          .single();
+          
+        const redirectPath = !editorProfile ? '/dashboard/editor/create-profile' : '/dashboard/editor';
+        return NextResponse.redirect(`${origin}${redirectPath}`);
+      } else {
+        return NextResponse.redirect(`${origin}/dashboard/client`);
+      }
     }
   }
 

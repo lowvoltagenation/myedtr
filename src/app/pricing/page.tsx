@@ -171,12 +171,12 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 py-12">
       <div className="max-w-7xl mx-auto px-6">
         {/* Success/Error Messages */}
         {success && (
           <div className="mb-8 mx-auto max-w-md">
-            <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4 text-green-800">
+            <div className="flex items-center gap-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4 text-green-800 dark:text-green-300">
               <CheckCircle className="w-5 h-5" />
               <div>
                 <p className="font-medium">Payment successful!</p>
@@ -188,7 +188,7 @@ export default function PricingPage() {
 
         {canceled && (
           <div className="mb-8 mx-auto max-w-md">
-            <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-800">
+            <div className="flex items-center gap-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-yellow-800 dark:text-yellow-300">
               <XCircle className="w-5 h-5" />
               <div>
                 <p className="font-medium">Payment canceled</p>
@@ -211,22 +211,22 @@ export default function PricingPage() {
         )}
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-foreground mb-4">
             Choose Your Plan
           </h1>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-gray-600 dark:text-muted-foreground mb-8">
             Select the perfect plan to showcase your video editing skills
           </p>
 
           {/* Billing Toggle */}
           <div className="flex items-center justify-center gap-4 mb-8">
-            <span className={`text-sm ${!annual ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+            <span className={`text-sm ${!annual ? 'text-gray-900 dark:text-foreground font-medium' : 'text-gray-500 dark:text-muted-foreground'}`}>
               Monthly
             </span>
             <button
               onClick={() => setAnnual(!annual)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                annual ? 'bg-purple-600' : 'bg-gray-200'
+                annual ? 'bg-purple-600' : 'bg-gray-200 dark:bg-gray-700'
               }`}
             >
               <span
@@ -235,7 +235,7 @@ export default function PricingPage() {
                 }`}
               />
             </button>
-            <span className={`text-sm ${annual ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+            <span className={`text-sm ${annual ? 'text-gray-900 dark:text-foreground font-medium' : 'text-gray-500 dark:text-muted-foreground'}`}>
               Annual
             </span>
             {annual && (
@@ -257,8 +257,8 @@ export default function PricingPage() {
                 key={tier.id} 
                 className={`relative flex flex-col ${
                   isPopular 
-                    ? 'border-purple-200 shadow-xl scale-105 bg-gradient-to-b from-white to-purple-50' 
-                    : 'border-gray-200 shadow-lg hover:shadow-xl transition-shadow'
+                    ? 'border-purple-200 dark:border-purple-800 shadow-xl scale-105 bg-gradient-to-b from-white to-purple-50 dark:from-card dark:to-purple-950/20' 
+                    : 'border-gray-200 dark:border-border shadow-lg hover:shadow-xl transition-shadow'
                 }`}
               >
                 {isPopular && (
@@ -284,11 +284,11 @@ export default function PricingPage() {
 
                   <div className="mt-6">
                     <div className="flex items-baseline justify-center">
-                      <span className="text-4xl font-bold text-gray-900">
+                      <span className="text-4xl font-bold text-gray-900 dark:text-foreground">
                         ${price}
                       </span>
                       {price > 0 && (
-                        <span className="text-gray-500 ml-1">
+                        <span className="text-gray-500 dark:text-muted-foreground ml-1">
                           /{annual ? 'year' : 'month'}
                         </span>
                       )}
@@ -307,7 +307,7 @@ export default function PricingPage() {
                     {getFeatureList(tier).map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-start gap-3">
                         <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{feature}</span>
+                        <span className="text-sm text-gray-700 dark:text-muted-foreground">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -350,7 +350,7 @@ export default function PricingPage() {
                     })()}
 
                     {tier.id !== 'free' && !getButtonConfig(tier).text.includes('Manage') && (
-                      <p className="text-xs text-gray-500 text-center">
+                      <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
                         Start your free trial today. No credit card required.
                       </p>
                     )}
@@ -363,36 +363,36 @@ export default function PricingPage() {
 
         {/* FAQ Section */}
         <div className="mt-20 max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
+          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-foreground mb-8">
             Frequently Asked Questions
           </h2>
           
           <div className="space-y-6">
-            <div className="bg-white rounded-lg p-6 shadow-md">
-              <h3 className="font-semibold text-gray-900 mb-2">
+            <div className="bg-white dark:bg-card rounded-lg p-6 shadow-md">
+              <h3 className="font-semibold text-gray-900 dark:text-foreground mb-2">
                 Can I change my plan at any time?
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-muted-foreground">
                 Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately 
                 and we'll prorate your billing accordingly.
               </p>
             </div>
 
-            <div className="bg-white rounded-lg p-6 shadow-md">
-              <h3 className="font-semibold text-gray-900 mb-2">
+            <div className="bg-white dark:bg-card rounded-lg p-6 shadow-md">
+              <h3 className="font-semibold text-gray-900 dark:text-foreground mb-2">
                 What happens if I exceed my usage limits?
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-muted-foreground">
                 If you reach your plan's limits, you'll be prompted to upgrade. Your account won't be 
                 suspended, but you'll need to upgrade to continue using premium features.
               </p>
             </div>
 
-            <div className="bg-white rounded-lg p-6 shadow-md">
-              <h3 className="font-semibold text-gray-900 mb-2">
+            <div className="bg-white dark:bg-card rounded-lg p-6 shadow-md">
+              <h3 className="font-semibold text-gray-900 dark:text-foreground mb-2">
                 Is there a free trial for paid plans?
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-muted-foreground">
                 Yes! All paid plans come with a 14-day free trial. No credit card required to start, 
                 and you can cancel anytime during the trial period.
               </p>

@@ -28,26 +28,26 @@
   }
 
   .dark {
-    /* Dark mode - Inverted palette */
-    --background: 242 89% 10%; /* Deep blue #02044F */
-    --foreground: 330 20% 95%;
-    --card: 258 82% 20%; /* Purple tint */
-    --card-foreground: 330 20% 95%;
-    --popover: 258 82% 15%;
-    --popover-foreground: 330 20% 95%;
-    --primary: 330 39% 84%; /* Light pink #F5B7D2 */
-    --primary-foreground: 242 89% 10%;
-    --secondary: 192 100% 49%; /* Cyan #00DBF9 */
-    --secondary-foreground: 242 89% 10%;
-    --muted: 258 82% 25%;
-    --muted-foreground: 330 15% 70%;
-    --accent: 312 81% 69%; /* Magenta #E744F6 */
-    --accent-foreground: 242 89% 10%;
+    /* Dark mode - Bluish gray palette */
+    --background: 220 25% 10%; /* Bluish gray background */
+    --foreground: 220 15% 90%;
+    --card: 220 25% 12%; /* Slightly lighter card background */
+    --card-foreground: 220 15% 90%;
+    --popover: 220 25% 12%; /* Darker popover */
+    --popover-foreground: 220 15% 90%;
+    --primary: 312 81% 69%; /* Keep magenta accent */
+    --primary-foreground: 220 25% 10%;
+    --secondary: 192 100% 49%; /* Keep cyan accent */
+    --secondary-foreground: 220 25% 10%;
+    --muted: 220 25% 15%; /* Muted elements */
+    --muted-foreground: 220 10% 65%;
+    --accent: 258 82% 70%; /* Purple accent */
+    --accent-foreground: 220 25% 10%;
     --destructive: 0 62.8% 50%;
-    --destructive-foreground: 330 20% 95%;
-    --border: 258 82% 25%;
-    --input: 258 82% 20%;
-    --ring: 330 39% 84%;
+    --destructive-foreground: 220 15% 90%;
+    --border: 220 25% 8%; /* Dark borders for dark mode */
+    --input: 220 25% 12%; /* Input backgrounds closer to card */
+    --ring: 312 81% 69%;
   }
 
   * {

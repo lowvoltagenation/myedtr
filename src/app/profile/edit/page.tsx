@@ -27,6 +27,9 @@ import Link from "next/link";
 import { TierBadge } from "@/components/ui/tier-badge";
 import { UsageMeter } from "@/components/ui/usage-meter";
 import { useSubscription } from "@/hooks/useSubscription";
+import { usePortfolioLimits } from "@/hooks/useFeatureGate";
+import { ProtectedUploadButton } from "@/components/ui/protected-button";
+import { PortfolioUpgradePrompt } from "@/components/ui/upgrade-prompt";
 
 interface UserProfile {
   id: string;
@@ -71,6 +74,7 @@ export default function EditProfilePage() {
 
   // Add subscription hook
   const subscription = useSubscription(user?.id);
+  const portfolioLimits = usePortfolioLimits(user?.id, subscription.tier);
   const [usageData, setUsageData] = useState({
     portfolioUploads: 0,
     messagesSent: 0
@@ -367,11 +371,26 @@ export default function EditProfilePage() {
     }
   };
 
-  const addPortfolioUrl = () => {
+  const addPortfolioUrl = async () => {
+    // Check if user can add more portfolio items
+    if (!portfolioLimits.canUpload) {
+      return; // Button should prevent this, but extra safety
+    }
+
     setFormData(prev => ({
       ...prev,
       portfolio_urls: [...prev.portfolio_urls, ""]
     }));
+
+    // Increment usage tracking if this is a new upload
+    if (user?.id && subscription.tier) {
+      try {
+        await subscription.incrementUsage('portfolio_uploads');
+        await portfolioLimits.refresh(); // Refresh limits
+      } catch (error) {
+        console.error('Error tracking portfolio upload:', error);
+      }
+    }
   };
 
   const updatePortfolioUrl = (index: number, value: string) => {
@@ -390,7 +409,7 @@ export default function EditProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
       </div>
     );
@@ -398,7 +417,7 @@ export default function EditProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-semibold mb-2">Profile Not Found</h2>
@@ -413,14 +432,14 @@ export default function EditProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 py-8">
       <div className="max-w-4xl mx-auto px-6">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Profile</h1>
-              <p className="text-gray-600">Manage your profile information and settings</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-foreground mb-2">Edit Profile</h1>
+              <p className="text-gray-600 dark:text-muted-foreground">Manage your profile information and settings</p>
             </div>
             <div className="flex gap-3">
               {profile.user_type === 'editor' && (
@@ -574,50 +593,48 @@ export default function EditProfilePage() {
                     <CardTitle>Pricing & Availability</CardTitle>
                     <CardDescription>Set your rates and availability status</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="hourly_rate">Hourly Rate (USD)</Label>
-                        <div className="relative">
-                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                          <Input
-                            id="hourly_rate"
-                            type="number"
-                            value={formData.hourly_rate}
-                            onChange={(e) => setFormData(prev => ({ ...prev, hourly_rate: e.target.value }))}
-                            placeholder="50"
-                            min="1"
-                            className="pl-10"
-                          />
-                        </div>
+                  <CardContent className="space-y-8">
+                    <div className="space-y-2">
+                      <Label htmlFor="hourly_rate">Hourly Rate (USD)</Label>
+                      <div className="relative max-w-xs">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Input
+                          id="hourly_rate"
+                          type="number"
+                          value={formData.hourly_rate}
+                          onChange={(e) => setFormData(prev => ({ ...prev, hourly_rate: e.target.value }))}
+                          placeholder="50"
+                          min="1"
+                          className="pl-10"
+                        />
                       </div>
+                    </div>
 
-                      <div className="space-y-2">
-                        <Label>Availability Status</Label>
-                        <div className="flex gap-2">
-                          {[
-                            { value: "available", label: "Available", color: "green" },
-                            { value: "busy", label: "Busy", color: "yellow" },
-                            { value: "unavailable", label: "Unavailable", color: "red" }
-                          ].map(({ value, label, color }) => (
-                            <button
-                              key={value}
-                              type="button"
-                              onClick={() => setFormData(prev => ({ ...prev, availability_status: value }))}
-                              className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
-                                formData.availability_status === value
-                                  ? color === "green" 
-                                    ? "bg-green-100 border-green-300 text-green-700"
-                                    : color === "yellow"
-                                    ? "bg-yellow-100 border-yellow-300 text-yellow-700"
-                                    : "bg-red-100 border-red-300 text-red-700"
-                                  : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
-                              }`}
-                            >
-                              {label}
-                            </button>
-                          ))}
-                        </div>
+                    <div className="space-y-3">
+                      <Label>Availability Status</Label>
+                      <div className="flex flex-wrap gap-3">
+                        {[
+                          { value: "available", label: "Available", color: "green" },
+                          { value: "busy", label: "Busy", color: "yellow" },
+                          { value: "unavailable", label: "Unavailable", color: "red" }
+                        ].map(({ value, label, color }) => (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, availability_status: value }))}
+                            className={`px-4 py-3 rounded-lg border text-sm font-medium transition-all min-w-[100px] ${
+                              formData.availability_status === value
+                                ? color === "green" 
+                                  ? "bg-green-100 border-green-300 text-green-700"
+                                  : color === "yellow"
+                                  ? "bg-yellow-100 border-yellow-300 text-yellow-700"
+                                  : "bg-red-100 border-red-300 text-red-700"
+                                : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </CardContent>
@@ -627,7 +644,14 @@ export default function EditProfilePage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Portfolio Links</CardTitle>
-                    <CardDescription>Add links to your work and portfolio</CardDescription>
+                    <CardDescription>
+                      Add links to your work and portfolio
+                      {subscription.tier === 'free' && (
+                        <span className="text-red-600 font-medium">
+                          {' '}(Limited to 3 videos on Free plan)
+                        </span>
+                      )}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {formData.portfolio_urls.map((url, index) => (
@@ -647,19 +671,68 @@ export default function EditProfilePage() {
                         </Button>
                       </div>
                     ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addPortfolioUrl}
-                      className="w-full"
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Add Portfolio Link
-                    </Button>
+
+                    {/* Feature-gated add button */}
+                    {portfolioLimits.canUpload ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addPortfolioUrl}
+                        className="w-full"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Add Portfolio Link
+                      </Button>
+                    ) : (
+                      <div className="space-y-3">
+                        <ProtectedUploadButton
+                          canUpload={portfolioLimits.canUpload}
+                          currentTier={subscription.tier}
+                          currentCount={portfolioLimits.currentCount}
+                          limit={portfolioLimits.limit || 3}
+                          onUpload={addPortfolioUrl}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          Add Portfolio Link
+                        </ProtectedUploadButton>
+                        
+                        {/* Show upgrade prompt for free users */}
+                        {subscription.tier === 'free' && (
+                          <PortfolioUpgradePrompt 
+                            currentCount={portfolioLimits.currentCount}
+                            limit={portfolioLimits.limit || 3}
+                          />
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </>
             )}
+
+            {/* Save Button */}
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                size="lg"
+                className="min-w-[140px]"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Profile
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* Sidebar */}

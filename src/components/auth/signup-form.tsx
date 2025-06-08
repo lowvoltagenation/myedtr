@@ -54,6 +54,7 @@ export function SignupForm() {
           data: {
             user_type: userType,
           },
+          emailRedirectTo: `${window.location.origin}/auth/callback?type=${userType}`,
         },
       });
 
@@ -63,39 +64,32 @@ export function SignupForm() {
       }
 
       if (data.user) {
-        // Insert user record with correct type
-        const { error: userError } = await supabase
-          .from('users')
-          .upsert({
-            id: data.user.id,
-            email: data.user.email!,
-            user_type: userType
-          });
-
-        if (userError) {
-          console.error('Error creating user:', userError);
+        // Check if user needs to confirm email
+        if (!data.session) {
+          // Store email for resend functionality
+          localStorage.setItem('signup_email', email);
+          // User created but needs email confirmation
+          router.push("/signup-success");
+          return;
         }
 
-        // If user is an editor, create editor profile
-        if (userType === "editor") {
-          const { error: profileError } = await supabase
-            .from('editor_profiles')
-            .insert({
-              user_id: data.user.id,
-              name: data.user.email?.split('@')[0] || 'Editor',
-              bio: '',
-              tier_level: 'free',
-              availability_status: 'available'
-            });
-
-          if (profileError) {
-            console.error('Error creating editor profile:', profileError);
-          }
-        }
-
+        // Wait a moment for the trigger to complete user setup
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         // Redirect to appropriate dashboard
         if (userType === "editor") {
-          router.push("/dashboard/editor");
+          // Check if editor profile exists, if not redirect to create profile
+          const { data: editorProfile } = await supabase
+            .from('editor_profiles')
+            .select('id')
+            .eq('user_id', data.user.id)
+            .single();
+            
+          if (!editorProfile) {
+            router.push("/dashboard/editor/create-profile");
+          } else {
+            router.push("/dashboard/editor");
+          }
         } else {
           router.push("/dashboard/client");
         }

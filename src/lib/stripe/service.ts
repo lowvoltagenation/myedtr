@@ -2,7 +2,7 @@ import { stripe, STRIPE_CONFIG, StripePlan, StripeSubscriptionStatus } from './c
 import { createClient } from '@/lib/supabase/server';
 import { Database } from '@/types/database';
 
-type SupabaseClient = ReturnType<typeof createClient>;
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
 export class StripeService {
   private supabase: SupabaseClient;
@@ -24,6 +24,10 @@ export class StripeService {
 
     if (subscription?.stripe_customer_id) {
       return subscription.stripe_customer_id;
+    }
+
+    if (!stripe) {
+      throw new Error('Stripe not initialized - missing environment variables');
     }
 
     // Create new Stripe customer
@@ -55,6 +59,10 @@ export class StripeService {
     cancelUrl: string,
     name?: string
   ): Promise<string> {
+    if (!stripe) {
+      throw new Error('Stripe not initialized - missing environment variables');
+    }
+
     const customerId = await this.getOrCreateCustomer(userId, email, name);
     const priceId = STRIPE_CONFIG.plans[plan].priceId;
 
@@ -93,6 +101,10 @@ export class StripeService {
    * Create a customer portal session for subscription management
    */
   async createPortalSession(userId: string, returnUrl: string): Promise<string> {
+    if (!stripe) {
+      throw new Error('Stripe not initialized - missing environment variables');
+    }
+
     const { data: subscription } = await this.supabase
       .from('subscriptions')
       .select('stripe_customer_id')

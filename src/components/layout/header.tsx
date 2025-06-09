@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -49,30 +49,39 @@ export function Header() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [fetchingProfile, setFetchingProfile] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Use refs to track current state and prevent infinite loops
+  const currentUserIdRef = useRef<string | null>(null);
+  const fetchingProfileRef = useRef(false);
+  const supabaseRef = useRef(createClient());
+  
   const router = useRouter();
   const pathname = usePathname();
-  const supabase = createClient();
 
   // Add subscription hook
   const subscription = useSubscription(user?.id);
 
   const fetchProfile = useCallback(async (userId: string, sessionUser: any) => {
     // Prevent multiple simultaneous calls
-    if (fetchingProfile) {
-      console.log('Profile fetch already in progress, skipping...');
+    if (fetchingProfileRef.current) {
       return;
     }
 
-    setFetchingProfile(true);
+    // Don't fetch if we already have this user's profile
+    if (currentUserIdRef.current === userId && profile) {
+      return;
+    }
+
+    fetchingProfileRef.current = true;
+    currentUserIdRef.current = userId;
     
     try {
       console.log('Fetching profile for user:', userId);
       
       // Check if user is an editor or client
-      const { data: userData, error: userError } = await supabase
+      const { data: userData, error: userError } = await supabaseRef.current
         .from('users')
         .select('user_type, avatar_url, name, bio, location')
         .eq('id', userId)
@@ -94,7 +103,7 @@ export function Header() {
 
       if (userData?.user_type === 'editor') {
         // Get editor profile with explicit avatar_url selection
-        const { data: editorProfile, error: profileError } = await supabase
+        const { data: editorProfile, error: profileError } = await supabaseRef.current
           .from('editor_profiles')
           .select('id, name, avatar_url, tier_level')
           .eq('user_id', userId)
@@ -138,60 +147,75 @@ export function Header() {
         tier_level: 'free'
       });
     } finally {
-      setFetchingProfile(false);
+      fetchingProfileRef.current = false;
     }
-  }, []); // Remove supabase dependency to prevent infinite loop
+  }, [profile]);
 
   useEffect(() => {
+    let mounted = true;
+    
     // Get initial session
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const newUser = session?.user || null;
+      if (!mounted) return;
       
-      // Only update if user actually changed
-      if (newUser?.id !== user?.id) {
+      const { data: { session } } = await supabaseRef.current.auth.getSession();
+      const newUser = session?.user || null;
+      const newUserId = newUser?.id || null;
+      
+      // Only update if user ID actually changed
+      if (currentUserIdRef.current !== newUserId) {
         setUser(newUser);
         
-        if (newUser) {
-          await fetchProfile(newUser.id, newUser);
+        if (newUser && newUserId) {
+          await fetchProfile(newUserId, newUser);
         } else {
           setProfile(null);
+          currentUserIdRef.current = null;
         }
       }
-      setLoading(false);
+      
+      if (mounted) {
+        setLoading(false);
+      }
     };
 
     getSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = supabaseRef.current.auth.onAuthStateChange(
       async (event, session) => {
-        const newUser = session?.user || null;
+        if (!mounted) return;
         
-        // Only update if user actually changed
-        if (newUser?.id !== user?.id) {
+        const newUser = session?.user || null;
+        const newUserId = newUser?.id || null;
+        
+        // Only update if user ID actually changed
+        if (currentUserIdRef.current !== newUserId) {
           setUser(newUser);
-          if (newUser) {
-            await fetchProfile(newUser.id, newUser);
+          
+          if (newUser && newUserId) {
+            await fetchProfile(newUserId, newUser);
           } else {
             setProfile(null);
+            currentUserIdRef.current = null;
           }
         }
       }
     );
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
-  }, [user?.id]); // Remove fetchProfile from dependencies to prevent infinite loop
+  }, []); // Empty deps - only run once
 
-  // Separate useEffect for profile update events to avoid dependency issues
+  // Handle profile update events
   useEffect(() => {
     const handleProfileUpdate = () => {
-      if (user) {
+      if (currentUserIdRef.current && user) {
         // Force a complete refresh
         setProfile(null);
-        setTimeout(() => fetchProfile(user.id, user), 100);
+        setTimeout(() => fetchProfile(currentUserIdRef.current!, user), 100);
       }
     };
 
@@ -200,10 +224,13 @@ export function Header() {
     return () => {
       window.removeEventListener('profileUpdated', handleProfileUpdate);
     };
-  }, [user, fetchProfile]);
+  }, []); // Empty deps - only set up once
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await supabaseRef.current.auth.signOut();
+    currentUserIdRef.current = null;
+    setProfile(null);
+    setUser(null);
     router.push('/');
   };
 
@@ -234,11 +261,11 @@ export function Header() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">M</span>
-                </div>
-                <span className="text-xl font-bold text-foreground">MyEdtr</span>
+              <Link href="/" className="flex items-center">
+                <span className="text-2xl font-black">
+                  <span className="text-blue-500">MY</span>
+                  <span className="text-purple-600 dark:text-purple-400">EDTR</span>
+                </span>
               </Link>
             </div>
 

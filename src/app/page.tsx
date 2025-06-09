@@ -35,7 +35,7 @@ export default function HomePage() {
                   Browse Editors
                 </Button>
               </Link>
-              <Link href="/auth/register?type=editor">
+              <Link href="/signup?type=editor">
                 <Button variant="outline" size="lg" className="btn-secondary px-8 py-4 text-lg w-full sm:w-auto rounded-xl">
                   Join as Editor
                 </Button>
@@ -177,12 +177,12 @@ export default function HomePage() {
             Join thousands of creators and editors who trust MyEdtr for their video projects.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Link href="/auth/register?type=client">
+            <Link href="/signup?type=client">
               <Button size="lg" className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white hover:text-primary px-8 py-4 text-lg w-full sm:w-auto rounded-xl font-semibold transition-all duration-300">
                 Post Your Project
               </Button>
             </Link>
-            <Link href="/auth/register?type=editor">
+            <Link href="/signup?type=editor">
               <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white hover:text-primary px-8 py-4 text-lg w-full sm:w-auto rounded-xl font-semibold transition-all duration-300">
                 Start Editing
               </Button>

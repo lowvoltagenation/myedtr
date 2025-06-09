@@ -99,7 +99,7 @@ export default function TestFeatureGatesPage() {
               <h3 className="text-lg font-semibold mb-2">Authentication Required</h3>
               <p className="text-gray-600 mb-4">Please log in to test feature gating functionality.</p>
               <Button asChild>
-                <a href="/auth/login">Log In</a>
+                <a href="/login">Log In</a>
               </Button>
             </CardContent>
           </Card>

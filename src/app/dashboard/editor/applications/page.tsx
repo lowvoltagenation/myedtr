@@ -125,19 +125,19 @@ export default function ApplicationsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded-lg"></div>
+                <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
               ))}
             </div>
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
+                <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
               ))}
             </div>
           </div>
@@ -147,16 +147,16 @@ export default function ApplicationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/dashboard/editor" className="inline-flex items-center text-purple-600 hover:text-purple-700 mb-4">
+          <Link href="/dashboard/editor" className="inline-flex items-center text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Applications</h1>
-          <p className="text-gray-600">Track your project applications and their status</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">My Applications</h1>
+          <p className="text-gray-600 dark:text-muted-foreground">Track your project applications and their status</p>
         </div>
 
         {/* Stats Cards */}
@@ -164,10 +164,10 @@ export default function ApplicationsPage() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <Briefcase className="h-8 w-8 text-blue-600" />
+                <Briefcase className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Applications</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Total Applications</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
                 </div>
               </div>
             </CardContent>
@@ -176,10 +176,10 @@ export default function ApplicationsPage() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <Clock className="h-8 w-8 text-yellow-600" />
+                <Clock className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Pending</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Pending</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.pending}</p>
                 </div>
               </div>
             </CardContent>
@@ -188,10 +188,10 @@ export default function ApplicationsPage() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <MessageCircle className="h-8 w-8 text-green-600" />
+                <MessageCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Accepted</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.accepted}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Accepted</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.accepted}</p>
                 </div>
               </div>
             </CardContent>
@@ -200,10 +200,10 @@ export default function ApplicationsPage() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <Eye className="h-8 w-8 text-red-600" />
+                <Eye className="h-8 w-8 text-red-600 dark:text-red-400" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Rejected</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.rejected}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Rejected</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.rejected}</p>
                 </div>
               </div>
             </CardContent>
@@ -229,7 +229,7 @@ export default function ApplicationsPage() {
                 </Select>
               </div>
               
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 dark:text-muted-foreground">
                 Showing {filteredApplications.length} of {applications.length} applications
               </div>
             </div>
@@ -245,7 +245,7 @@ export default function ApplicationsPage() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-xl font-semibold text-gray-900">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                           {application.projects.title}
                         </h3>
                         <div className="flex gap-2">
@@ -265,11 +265,11 @@ export default function ApplicationsPage() {
                         </div>
                       </div>
                       
-                      <p className="text-gray-600 mb-4 line-clamp-2">
+                      <p className="text-gray-600 dark:text-muted-foreground mb-4 line-clamp-2">
                         {application.projects.description}
                       </p>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600 dark:text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <DollarSign className="h-4 w-4" />
                           <span>Proposed: ${application.proposed_rate}/hr</span>
@@ -298,9 +298,9 @@ export default function ApplicationsPage() {
                   </div>
                   
                   {/* Cover Letter Preview */}
-                  <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">Your Cover Letter:</h4>
-                    <p className="text-gray-700 text-sm line-clamp-3">
+                  <div className="mb-4 p-4 bg-gray-50 dark:bg-muted/30 rounded-lg">
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">Your Cover Letter:</h4>
+                    <p className="text-gray-700 dark:text-muted-foreground text-sm line-clamp-3">
                       {application.cover_letter}
                     </p>
                   </div>
@@ -308,7 +308,7 @@ export default function ApplicationsPage() {
                   {/* Actions */}
                   <div className="flex items-center justify-between">
                     <div className="flex gap-3">
-                      <Link href={`/project/${application.project_id}`}>
+                      <Link href={`/dashboard/editor/apply/${application.project_id}`}>
                         <Button variant="outline" size="sm">
                           <Eye className="h-4 w-4 mr-2" />
                           View Project
@@ -325,7 +325,7 @@ export default function ApplicationsPage() {
                       )}
                     </div>
                     
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 dark:text-muted-foreground">
                       Project Status: {application.projects.status}
                     </div>
                   </div>
@@ -336,11 +336,11 @@ export default function ApplicationsPage() {
         ) : (
           <Card>
             <CardContent className="text-center py-12">
-              <Briefcase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <Briefcase className="h-16 w-16 text-gray-400 dark:text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 {statusFilter === "all" ? "No Applications Yet" : `No ${statusFilter} Applications`}
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-muted-foreground mb-4">
                 {statusFilter === "all" 
                   ? "You haven't applied to any projects yet. Start browsing available projects!"
                   : `You don't have any ${statusFilter} applications.`

@@ -180,7 +180,7 @@ export default function AboutPage() {
             Whether you need a quick edit or a complete production, we make it easy to find the perfect collaborator.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth/register">
+            <Link href="/signup">
               <Button size="lg" className="px-8">
                 Get Started Free
                 <ArrowRight className="ml-2 w-4 h-4" />
@@ -387,7 +387,7 @@ export default function AboutPage() {
             Your next great video is just a click away.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth/register">
+            <Link href="/signup">
               <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-8">
                 Sign Up Free
                 <ArrowRight className="ml-2 w-4 h-4" />

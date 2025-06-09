@@ -74,7 +74,7 @@ export default function AnalyticsPage() {
         setUser(session.user);
         await loadAnalyticsData(session.user.id);
       } else {
-        router.push('/auth/login');
+        router.push('/login');
       }
     };
 

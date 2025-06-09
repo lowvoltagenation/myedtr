@@ -130,14 +130,14 @@ export default function BrowseProjectsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-64 bg-gray-200 rounded-lg"></div>
+                <div key={i} className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
               ))}
             </div>
           </div>
@@ -147,12 +147,12 @@ export default function BrowseProjectsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Browse Projects</h1>
-          <p className="text-gray-600">Find and apply to video editing projects</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Browse Projects</h1>
+          <p className="text-gray-600 dark:text-muted-foreground">Find and apply to video editing projects</p>
         </div>
 
         {/* Search and Filters */}
@@ -162,7 +162,7 @@ export default function BrowseProjectsPage() {
               {/* Search */}
               <div className="lg:col-span-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-muted-foreground h-4 w-4" />
                   <Input
                     placeholder="Search projects..."
                     value={searchTerm}
@@ -218,7 +218,7 @@ export default function BrowseProjectsPage() {
 
             {/* Results count */}
             <div className="mt-4 flex items-center justify-between">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-muted-foreground">
                 Showing {filteredProjects.length} of {projects.length - appliedProjectIds.length} available projects
               </p>
               <Button
@@ -241,10 +241,10 @@ export default function BrowseProjectsPage() {
         {filteredProjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.map((project) => (
-              <Card key={project.id} className="hover:shadow-lg transition-shadow">
+              <Card key={project.id} className="hover:shadow-lg dark:hover:shadow-2xl transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between mb-2">
-                    <CardTitle className="text-lg line-clamp-2">{project.title}</CardTitle>
+                    <CardTitle className="text-lg line-clamp-2 dark:text-white">{project.title}</CardTitle>
                     <div className="flex flex-col gap-1">
                       {project.urgency && (
                         <Badge variant={
@@ -262,14 +262,14 @@ export default function BrowseProjectsPage() {
                       )}
                     </div>
                   </div>
-                  <CardDescription className="line-clamp-3">
+                  <CardDescription className="line-clamp-3 dark:text-muted-foreground">
                     {project.description}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {/* Project Details */}
-                    <div className="flex items-center justify-between text-sm text-gray-600">
+                    <div className="flex items-center justify-between text-sm text-gray-600 dark:text-muted-foreground">
                       {project.budget && (
                         <div className="flex items-center gap-1">
                           <DollarSign className="h-4 w-4" />
@@ -285,7 +285,7 @@ export default function BrowseProjectsPage() {
                     </div>
 
                     {/* Posted time */}
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-muted-foreground">
                       <Clock className="h-3 w-3" />
                       <span>Posted {new Date(project.created_at).toLocaleDateString()}</span>
                     </div>
@@ -304,9 +304,9 @@ export default function BrowseProjectsPage() {
         ) : (
           <Card>
             <CardContent className="text-center py-12">
-              <Briefcase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Projects Found</h3>
-              <p className="text-gray-600 mb-4">
+              <Briefcase className="h-16 w-16 text-gray-400 dark:text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Projects Found</h3>
+              <p className="text-gray-600 dark:text-muted-foreground mb-4">
                 {appliedProjectIds.length > 0 
                   ? "You've applied to all available projects matching your criteria."
                   : "No projects match your current filters."

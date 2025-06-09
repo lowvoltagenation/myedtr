@@ -118,7 +118,7 @@ export default function EditProfilePage() {
         setUser(session.user);
         await loadProfile();
       } else {
-        router.push('/auth/login');
+        router.push('/login');
       }
     };
 
@@ -136,7 +136,7 @@ export default function EditProfilePage() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
-        router.push('/auth/login');
+        router.push('/login');
         return;
       }
 

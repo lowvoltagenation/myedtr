@@ -113,7 +113,7 @@ export default function PricingPage() {
   const handleSubscribe = async (planId: string) => {
     if (!user) {
       // Redirect to login if not authenticated
-      window.location.href = '/auth/login?redirect=/pricing';
+      window.location.href = '/login?redirect=/pricing';
       return;
     }
 

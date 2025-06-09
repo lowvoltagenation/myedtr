@@ -140,7 +140,7 @@ export function Header() {
     } finally {
       setFetchingProfile(false);
     }
-  }, [supabase]); // Remove fetchingProfile from dependencies to prevent infinite loop
+  }, []); // Remove supabase dependency to prevent infinite loop
 
   useEffect(() => {
     // Get initial session
@@ -183,7 +183,7 @@ export function Header() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [fetchProfile, user?.id]);
+  }, [user?.id]); // Remove fetchProfile from dependencies to prevent infinite loop
 
   // Separate useEffect for profile update events to avoid dependency issues
   useEffect(() => {
@@ -396,12 +396,12 @@ export function Header() {
                 </>
               ) : (
                 <div className="flex items-center space-x-3">
-                  <Link href="/auth/login">
+                  <Link href="/login">
                     <Button variant="ghost" size="sm">
                       Sign In
                     </Button>
                   </Link>
-                  <Link href="/auth/register">
+                  <Link href="/signup">
                     <Button size="sm">
                       Join
                     </Button>

@@ -481,8 +481,8 @@ export default function EditProfilePage() {
             {/* Basic Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
-                <CardDescription>Update your basic profile details</CardDescription>
+                <CardTitle className="dark:text-white">Basic Information</CardTitle>
+                <CardDescription className="dark:text-muted-foreground">Update your basic profile details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -561,24 +561,24 @@ export default function EditProfilePage() {
                 {/* Specialties */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Specialties</CardTitle>
-                    <CardDescription>Select your areas of expertise</CardDescription>
+                    <CardTitle className="dark:text-white">Specialties</CardTitle>
+                    <CardDescription className="dark:text-muted-foreground">Select your areas of expertise</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {SPECIALTIES.map((specialty) => (
                         <button
                           key={specialty}
                           type="button"
                           onClick={() => handleSpecialtyToggle(specialty)}
-                          className={`p-3 rounded-lg border text-sm font-medium transition-all ${
+                          className={`p-2 rounded-md border text-xs font-medium transition-all text-center ${
                             formData.specialties.includes(specialty)
-                              ? "bg-purple-100 border-purple-300 text-purple-700"
-                              : "bg-white border-gray-200 text-gray-700 hover:border-purple-200"
+                              ? "bg-purple-100 dark:bg-purple-900/30 border-purple-300 dark:border-purple-600 text-purple-700 dark:text-purple-300"
+                              : "bg-white dark:bg-card border-gray-200 dark:border-border text-gray-700 dark:text-foreground hover:border-purple-200 dark:hover:border-purple-500"
                           }`}
                         >
                           {formData.specialties.includes(specialty) && (
-                            <CheckCircle className="w-4 h-4 inline mr-2" />
+                            <CheckCircle className="w-3 h-3 inline mr-1" />
                           )}
                           {specialty}
                         </button>
@@ -590,14 +590,14 @@ export default function EditProfilePage() {
                 {/* Pricing & Availability */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Pricing & Availability</CardTitle>
-                    <CardDescription>Set your rates and availability status</CardDescription>
+                    <CardTitle className="dark:text-white">Pricing & Availability</CardTitle>
+                    <CardDescription className="dark:text-muted-foreground">Set your rates and availability status</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-8">
+                  <CardContent className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="hourly_rate">Hourly Rate (USD)</Label>
+                      <Label htmlFor="hourly_rate" className="dark:text-foreground">Hourly Rate (USD)</Label>
                       <div className="relative max-w-xs">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-muted-foreground w-4 h-4" />
                         <Input
                           id="hourly_rate"
                           type="number"
@@ -611,8 +611,8 @@ export default function EditProfilePage() {
                     </div>
 
                     <div className="space-y-3">
-                      <Label>Availability Status</Label>
-                      <div className="flex flex-wrap gap-3">
+                      <Label className="dark:text-foreground">Availability Status</Label>
+                      <div className="grid grid-cols-3 gap-2">
                         {[
                           { value: "available", label: "Available", color: "green" },
                           { value: "busy", label: "Busy", color: "yellow" },
@@ -622,14 +622,14 @@ export default function EditProfilePage() {
                             key={value}
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, availability_status: value }))}
-                            className={`px-4 py-3 rounded-lg border text-sm font-medium transition-all min-w-[100px] ${
+                            className={`px-3 py-2 rounded-md border text-xs font-medium transition-all ${
                               formData.availability_status === value
                                 ? color === "green" 
-                                  ? "bg-green-100 border-green-300 text-green-700"
+                                  ? "bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-600 text-green-700 dark:text-green-300"
                                   : color === "yellow"
-                                  ? "bg-yellow-100 border-yellow-300 text-yellow-700"
-                                  : "bg-red-100 border-red-300 text-red-700"
-                                : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
+                                  ? "bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-600 text-yellow-700 dark:text-yellow-300"
+                                  : "bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-600 text-red-700 dark:text-red-300"
+                                : "bg-white dark:bg-card border-gray-200 dark:border-border text-gray-700 dark:text-foreground hover:border-gray-300 dark:hover:border-gray-500"
                             }`}
                           >
                             {label}
@@ -643,11 +643,11 @@ export default function EditProfilePage() {
                 {/* Portfolio URLs */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Portfolio Links</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="dark:text-white">Portfolio Links</CardTitle>
+                    <CardDescription className="dark:text-muted-foreground">
                       Add links to your work and portfolio
                       {subscription.tier === 'free' && (
-                        <span className="text-red-600 font-medium">
+                        <span className="text-red-600 dark:text-red-400 font-medium">
                           {' '}(Limited to 3 videos on Free plan)
                         </span>
                       )}
@@ -737,10 +737,59 @@ export default function EditProfilePage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Profile Photo - moved to top */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="dark:text-white">Profile Photo</CardTitle>
+                <CardDescription className="dark:text-muted-foreground">Upload a professional headshot</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col items-center space-y-4">
+                  {profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt={profile?.name || "Profile"}
+                      className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-600 shadow-lg"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 flex items-center justify-center border-4 border-white dark:border-gray-600 shadow-lg">
+                      <User className="w-12 h-12 text-gray-400 dark:text-gray-500" />
+                    </div>
+                  )}
+                  
+                  <div className="w-full">
+                    <label htmlFor="avatar-upload" className="cursor-pointer">
+                      <div className="w-full px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-purple-400 dark:hover:border-purple-500 transition-colors text-center">
+                        {uploadingAvatar ? (
+                          <div className="flex items-center justify-center text-gray-600 dark:text-gray-300">
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            Uploading...
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center text-gray-600 dark:text-gray-300">
+                            <Upload className="w-4 h-4 mr-2" />
+                            Change Photo
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                    <input
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                      disabled={uploadingAvatar}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Current Subscription */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 dark:text-white">
                   <User className="w-5 h-5" />
                   Subscription Status
                 </CardTitle>
@@ -754,7 +803,7 @@ export default function EditProfilePage() {
 
                 {subscription.tier === 'free' && (
                   <div className="text-center space-y-3">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">
                       You're on the free plan with limited features.
                     </p>
                     <Link href="/pricing">
@@ -767,7 +816,7 @@ export default function EditProfilePage() {
 
                 {subscription.tier === 'pro' && (
                   <div className="text-center space-y-3">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">
                       You have access to professional features.
                     </p>
                     <Link href="/pricing">
@@ -780,7 +829,7 @@ export default function EditProfilePage() {
 
                 {subscription.tier === 'featured' && (
                   <div className="text-center">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">
                       You have access to all premium features!
                     </p>
                   </div>
@@ -791,8 +840,8 @@ export default function EditProfilePage() {
             {/* Usage Limits */}
             <Card>
               <CardHeader>
-                <CardTitle>Usage This Month</CardTitle>
-                <CardDescription>Track your current usage against plan limits</CardDescription>
+                <CardTitle className="dark:text-white">Usage This Month</CardTitle>
+                <CardDescription className="dark:text-muted-foreground">Track your current usage against plan limits</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {!subscription.loading && (
@@ -817,58 +866,9 @@ export default function EditProfilePage() {
 
                 {subscription.loading && (
                   <div className="flex items-center justify-center py-4">
-                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                    <Loader2 className="w-6 h-6 animate-spin text-gray-400 dark:text-gray-500" />
                   </div>
                 )}
-              </CardContent>
-            </Card>
-
-            {/* Avatar Upload */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Photo</CardTitle>
-                <CardDescription>Upload a professional headshot</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-col items-center space-y-4">
-                  {profile?.avatar_url ? (
-                    <img
-                      src={profile.avatar_url}
-                      alt={profile?.name || "Profile"}
-                      className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
-                    />
-                  ) : (
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center border-4 border-white shadow-lg">
-                      <User className="w-12 h-12 text-gray-400" />
-                    </div>
-                  )}
-                  
-                  <div className="w-full">
-                    <label htmlFor="avatar-upload" className="cursor-pointer">
-                      <div className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-400 transition-colors text-center">
-                        {uploadingAvatar ? (
-                          <div className="flex items-center justify-center">
-                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            Uploading...
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-center">
-                            <Upload className="w-4 h-4 mr-2" />
-                            Change Photo
-                          </div>
-                        )}
-                      </div>
-                    </label>
-                    <input
-                      id="avatar-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarUpload}
-                      className="hidden"
-                      disabled={uploadingAvatar}
-                    />
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>

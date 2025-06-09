@@ -225,10 +225,14 @@ export class SubscriptionService {
         .lte('period_end', monthEnd.toISOString())
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 = no rows found, which is expected
+        console.warn('Usage tracking table not found or error:', error);
+        return 0; // Return 0 usage if table doesn't exist
+      }
       return data?.metric_value || 0;
     } catch (error) {
-      console.error('Error fetching current usage:', error);
+      console.warn('Error fetching current usage, returning 0:', error);
       return 0;
     }
   }
@@ -295,8 +299,9 @@ export class SubscriptionService {
         if (insertError) throw insertError;
       }
     } catch (error) {
-      console.error('Error incrementing usage:', error);
-      throw error;
+      console.warn('Error incrementing usage (table may not exist):', error);
+      // Don't throw - if usage tracking table doesn't exist, just log and continue
+      // This allows the app to function without usage tracking
     }
   }
 

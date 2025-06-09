@@ -34,6 +34,7 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
   const errorCount = useRef(0);
   const lastErrorTime = useRef<number>(0);
   const isLoadingRef = useRef(false);
+  const subscriptionRef = useRef<any>(null);
 
   // Reset circuit breaker after 30 seconds
   const resetCircuitBreaker = useCallback(() => {
@@ -96,6 +97,35 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
     }
   }, [userId, resetCircuitBreaker]);
 
+  // Stable callback for realtime updates
+  const handleRealtimeUpdate = useCallback(async (payload: any) => {
+    console.log('Subscription change detected:', payload);
+    try {
+      // Add delay to prevent rapid fire updates
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      if (!isLoadingRef.current && userId) {
+        // Call loadTierData directly without depending on the callback
+        isLoadingRef.current = true;
+        try {
+          const [userTier, flags] = await Promise.all([
+            subscriptionService.getUserTier(userId).catch(() => 'free' as SubscriptionTier),
+            subscriptionService.getFeatureFlags(userId).catch(() => ({}))
+          ]);
+          
+          setTier(userTier);
+          setFeatureFlags(flags);
+        } catch (error) {
+          console.error('Error in realtime update:', error);
+        } finally {
+          isLoadingRef.current = false;
+        }
+      }
+    } catch (error) {
+      console.error('Error reloading tier data from realtime listener:', error);
+    }
+  }, [userId]);
+
   // Load tier data when userId changes
   useEffect(() => {
     if (userId) {
@@ -112,11 +142,19 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
   useEffect(() => {
     if (!userId || errorCount.current >= 3) return;
 
-    let channel: any = null;
+    // Clean up existing subscription first
+    if (subscriptionRef.current) {
+      try {
+        supabase.removeChannel(subscriptionRef.current);
+        subscriptionRef.current = null;
+      } catch (error) {
+        console.error('Error removing existing channel:', error);
+      }
+    }
 
     try {
-      channel = supabase
-        .channel(`subscription-changes-${userId}`)
+      const channel = supabase
+        .channel(`subscription-changes-${userId}-${Date.now()}`) // Add timestamp to ensure uniqueness
         .on(
           'postgres_changes',
           {
@@ -125,20 +163,7 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
             table: 'subscriptions',
             filter: `user_id=eq.${userId}`
           },
-          async (payload) => {
-            console.log('Subscription change detected:', payload);
-            try {
-              // Add delay to prevent rapid fire updates
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              
-              if (!isLoadingRef.current) {
-                await loadTierData();
-              }
-            } catch (error) {
-              console.error('Error reloading tier data from realtime listener:', error);
-              // Don't throw - just log the error to prevent infinite loops
-            }
-          }
+          handleRealtimeUpdate
         )
         .subscribe((status) => {
           console.log('Realtime subscription status:', status);
@@ -148,21 +173,24 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
           }
         });
 
+      subscriptionRef.current = channel;
+
     } catch (error) {
       console.error('Error setting up realtime subscription:', error);
       errorCount.current++;
     }
 
     return () => {
-      if (channel) {
+      if (subscriptionRef.current) {
         try {
-          supabase.removeChannel(channel);
+          supabase.removeChannel(subscriptionRef.current);
+          subscriptionRef.current = null;
         } catch (error) {
           console.error('Error removing channel:', error);
         }
       }
     };
-  }, [userId, loadTierData]);
+  }, [userId, handleRealtimeUpdate]); // Only depend on userId and stable callback
 
   const canAccess = useCallback((requiredTier: SubscriptionTier): boolean => {
     const tierHierarchy = { free: 0, pro: 1, featured: 2 };

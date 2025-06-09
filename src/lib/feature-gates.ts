@@ -25,32 +25,48 @@ export class FeatureGate {
       return { canAccess: true };
     }
 
-    // Count current portfolio videos
-    const { count: currentCount, error } = await supabase
-      .from('portfolio_videos')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
+    try {
+      // Count current portfolio videos from editor_profiles.portfolio_urls
+      // Since portfolio_videos table doesn't exist, use the existing portfolio_urls array
+      const { data: profile, error } = await supabase
+        .from('editor_profiles')
+        .select('portfolio_urls')
+        .eq('user_id', userId)
+        .single();
 
-    if (error) {
-      console.error('Error checking portfolio count:', error);
-      return { 
-        canAccess: false, 
-        message: 'Unable to verify portfolio limit. Please try again.' 
+      if (error) {
+        console.warn('Portfolio table not found, assuming no videos uploaded');
+        // If table doesn't exist or user doesn't have profile, assume no videos
+        return {
+          canAccess: true,
+          currentUsage: 0,
+          limit,
+          message: `You can upload up to ${limit} portfolio videos`
+        };
+      }
+
+      const currentUsage = profile?.portfolio_urls ? profile.portfolio_urls.filter((url: string) => url.trim()).length : 0;
+      const canAccess = currentUsage < limit;
+
+      return {
+        canAccess,
+        currentUsage,
+        limit,
+        upgradeRequired: canAccess ? undefined : 'pro',
+        message: canAccess 
+          ? `You have ${limit - currentUsage} video upload${limit - currentUsage === 1 ? '' : 's'} remaining`
+          : `You've reached your ${limit} video limit. Upgrade to Pro for unlimited uploads.`
+      };
+    } catch (error) {
+      console.warn('Error checking portfolio count, assuming no videos:', error);
+      // On any error, assume no videos uploaded
+      return {
+        canAccess: true,
+        currentUsage: 0,
+        limit,
+        message: `You can upload up to ${limit} portfolio videos`
       };
     }
-
-    const currentUsage = currentCount || 0;
-    const canAccess = currentUsage < limit;
-
-    return {
-      canAccess,
-      currentUsage,
-      limit,
-      upgradeRequired: canAccess ? undefined : 'pro',
-      message: canAccess 
-        ? `You have ${limit - currentUsage} video upload${limit - currentUsage === 1 ? '' : 's'} remaining`
-        : `You've reached your ${limit} video limit. Upgrade to Pro for unlimited uploads.`
-    };
   }
 
   /**

@@ -436,22 +436,22 @@ export default function EditProfilePage() {
       <div className="max-w-4xl mx-auto px-6">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-foreground mb-2">Edit Profile</h1>
               <p className="text-gray-600 dark:text-muted-foreground">Manage your profile information and settings</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row lg:w-auto">
               {profile.user_type === 'editor' && (
-                <Link href={`/editor/${profile.id}`}>
-                  <Button variant="outline">
+                <Link href={`/editor/${profile.id}`} className="w-full sm:w-auto">
+                  <Button className="w-full sm:w-auto">
                     <Eye className="w-4 h-4 mr-2" />
                     Preview
                   </Button>
                 </Link>
               )}
-              <Link href={profile.user_type === 'editor' ? '/dashboard/editor' : '/dashboard/client'}>
-                <Button variant="ghost">
+              <Link href={profile.user_type === 'editor' ? '/dashboard/editor' : '/dashboard/client'} className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto">
                   Back to Dashboard
                 </Button>
               </Link>

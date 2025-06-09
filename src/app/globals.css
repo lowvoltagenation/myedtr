@@ -11,19 +11,19 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 312 81% 69%; /* Magenta #E744F6 */
+    --primary: 217 91% 60%; /* Blue #3B82F6 - matches logo "MY" text */
     --primary-foreground: 0 0% 100%;
     --secondary: 192 100% 49%; /* Cyan #00DBF9 */
     --secondary-foreground: 0 0% 100%;
-    --muted: 330 20% 92%; /* Light pink tint */
+    --muted: 215 20% 92%; /* Light blue tint */
     --muted-foreground: 240 5% 25%;
     --accent: 258 82% 58%; /* Purple #862DFB */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
-    --border: 330 15% 90%;
-    --input: 330 15% 94%;
-    --ring: 312 81% 69%;
+    --border: 215 15% 90%;
+    --input: 215 15% 94%;
+    --ring: 217 91% 60%;
     --radius: 0.5rem;
   }
 
@@ -35,7 +35,7 @@
     --card-foreground: 220 15% 90%;
     --popover: 220 25% 12%; /* Darker popover */
     --popover-foreground: 220 15% 90%;
-    --primary: 312 81% 69%; /* Keep magenta accent */
+    --primary: 217 91% 70%; /* Keep blue but brighter for dark mode */
     --primary-foreground: 220 25% 10%;
     --secondary: 192 100% 49%; /* Keep cyan accent */
     --secondary-foreground: 220 25% 10%;
@@ -47,7 +47,7 @@
     --destructive-foreground: 220 15% 90%;
     --border: 220 25% 12%; /* Medium dark borders for dark mode */
     --input: 220 25% 12%; /* Input backgrounds closer to card */
-    --ring: 312 81% 69%;
+    --ring: 217 91% 70%;
   }
 
   * {
@@ -67,22 +67,22 @@
 
 @layer components {
   .gradient-text {
-    background: linear-gradient(135deg, #e744f6 0%, #862dfb 30%, #00dbf9 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #862dfb 30%, #00dbf9 100%);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
   }
   
   .gradient-bg {
-    background: linear-gradient(135deg, #e744f6 0%, #862dfb 50%, #00dbf9 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #862dfb 50%, #00dbf9 100%);
   }
   
   .gradient-bg-alt {
-    background: linear-gradient(135deg, #00dbf9 0%, #e744f6 50%, #f5b7d2 100%);
+    background: linear-gradient(135deg, #00dbf9 0%, #3b82f6 50%, #93c5fd 100%);
   }
   
   .gradient-bg-subtle {
-    background: linear-gradient(135deg, rgba(231, 68, 246, 0.1) 0%, rgba(134, 45, 251, 0.1) 50%, rgba(0, 219, 249, 0.1) 100%);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(134, 45, 251, 0.1) 50%, rgba(0, 219, 249, 0.1) 100%);
   }
   
 
@@ -100,7 +100,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(231, 68, 246, 0.05) 0%, rgba(0, 219, 249, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(0, 219, 249, 0.05) 100%);
     opacity: 0;
     transition: opacity 0.4s ease;
     pointer-events: none;
@@ -112,9 +112,9 @@
   
   .card-hover:hover {
     box-shadow: 
-      0 20px 25px -5px rgba(231, 68, 246, 0.1),
-      0 10px 10px -5px rgba(231, 68, 246, 0.04),
-      0 0 0 1px rgba(231, 68, 246, 0.05);
+      0 20px 25px -5px rgba(59, 130, 246, 0.1),
+      0 10px 10px -5px rgba(59, 130, 246, 0.04),
+      0 0 0 1px rgba(59, 130, 246, 0.05);
     transform: translateY(-8px) scale(1.02);
   }
   
@@ -157,7 +157,7 @@
   
   /* Enhanced button styles */
   .btn-primary {
-    background: linear-gradient(135deg, #e744f6 0%, #862dfb 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #862dfb 100%);
     border: none;
     color: white;
     font-weight: 600;
@@ -183,12 +183,12 @@
   
   .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(231, 68, 246, 0.3);
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
   }
   
   .btn-secondary {
     background: transparent;
-    border: 2px solid #e744f6;
+    border: 2px solid #3b82f6;
     color: hsl(var(--primary));
     font-weight: 600;
     position: relative;
@@ -204,7 +204,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, #e744f6 0%, #00dbf9 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #00dbf9 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
     border-radius: inherit;
@@ -219,7 +219,7 @@
     color: white;
     border-color: transparent;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(231, 68, 246, 0.25);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25);
   }
 }
 

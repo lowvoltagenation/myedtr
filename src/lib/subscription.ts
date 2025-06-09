@@ -216,6 +216,7 @@ export class SubscriptionService {
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
+      // Use select() instead of single() to handle multiple/no rows gracefully
       const { data, error } = await supabase
         .from('usage_tracking')
         .select('metric_value')
@@ -223,14 +224,17 @@ export class SubscriptionService {
         .eq('metric_type', metricType)
         .gte('period_start', monthStart.toISOString())
         .lte('period_end', monthEnd.toISOString())
-        .single();
+        .order('created_at', { ascending: false })
+        .limit(1);
 
       if (error) {
         // Handle any error from Supabase (including 406, table not found, etc.)
         console.warn('Usage tracking not available:', error.code, error.message);
         return 0; // Return 0 usage if table doesn't exist or any error occurs
       }
-      return data?.metric_value || 0;
+
+      // Return the most recent value, or 0 if no data
+      return data && data.length > 0 ? (data[0]?.metric_value || 0) : 0;
     } catch (error) {
       console.warn('Error fetching current usage, returning 0:', error);
       return 0;
@@ -263,7 +267,7 @@ export class SubscriptionService {
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-      // Try to update existing record
+      // Try to find existing record - use select() instead of single() to avoid 406 errors
       const { data: existingData, error: fetchError } = await supabase
         .from('usage_tracking')
         .select('id, metric_value')
@@ -271,23 +275,25 @@ export class SubscriptionService {
         .eq('metric_type', metricType)
         .gte('period_start', monthStart.toISOString())
         .lte('period_end', monthEnd.toISOString())
-        .single();
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
+      if (fetchError) {
         // If table doesn't exist or other error, just return silently
         console.warn('Usage tracking not available for increment:', fetchError.code, fetchError.message);
         return;
       }
 
-      if (existingData) {
+      if (existingData && existingData.length > 0) {
         // Update existing record
+        const record = existingData[0];
         const { error: updateError } = await supabase
           .from('usage_tracking')
           .update({ 
-            metric_value: existingData.metric_value + incrementBy,
+            metric_value: record.metric_value + incrementBy,
             updated_at: now.toISOString()
           })
-          .eq('id', existingData.id);
+          .eq('id', record.id);
 
         if (updateError) {
           console.warn('Error updating usage tracking:', updateError.code, updateError.message);

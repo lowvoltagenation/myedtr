@@ -36,6 +36,9 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
   const isLoadingRef = useRef(false);
   const subscriptionRef = useRef<any>(null);
 
+  // SAFETY: If there are too many errors, disable subscription functionality entirely
+  const [disableSubscriptions, setDisableSubscriptions] = useState(false);
+
   // Reset circuit breaker after 30 seconds
   const resetCircuitBreaker = useCallback(() => {
     if (Date.now() - lastErrorTime.current > 30000) {
@@ -45,7 +48,7 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
 
   // Wrap in useCallback to prevent recreation on every render
   const loadTierData = useCallback(async () => {
-    if (!userId || isLoadingRef.current) {
+    if (!userId || isLoadingRef.current || disableSubscriptions) {
       setLoading(false);
       return;
     }
@@ -53,8 +56,10 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
     // Circuit breaker: stop trying if too many errors
     resetCircuitBreaker();
     if (errorCount.current >= 3) {
-      console.warn('Circuit breaker active: too many subscription errors');
-      setError('Subscription service temporarily unavailable');
+      console.warn('Subscription system disabled due to repeated errors');
+      setDisableSubscriptions(true);
+      setError(null); // Clear error to prevent UI issues
+      setTier('free'); // Safe default
       setLoading(false);
       return;
     }
@@ -66,11 +71,11 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
       
       const [userTier, flags] = await Promise.all([
         subscriptionService.getUserTier(userId).catch(err => {
-          console.warn('Failed to get user tier:', err);
+          console.warn('Failed to get user tier, using default:', err);
           return 'free' as SubscriptionTier;
         }),
         subscriptionService.getFeatureFlags(userId).catch(err => {
-          console.warn('Failed to get feature flags:', err);
+          console.warn('Failed to get feature flags, using defaults:', err);
           return {};
         })
       ]);
@@ -84,18 +89,17 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
       errorCount.current++;
       lastErrorTime.current = Date.now();
       
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load subscription data';
-      setError(errorMessage);
-      console.error('Error loading subscription data:', err);
+      console.warn('Subscription error, using safe defaults:', err);
       
       // Set safe defaults to prevent further issues
       setTier('free');
       setFeatureFlags({});
+      setError(null); // Don't show errors to users - just use defaults
     } finally {
       setLoading(false);
       isLoadingRef.current = false;
     }
-  }, [userId, resetCircuitBreaker]);
+  }, [userId, resetCircuitBreaker, disableSubscriptions]);
 
   // Stable callback for realtime updates
   const handleRealtimeUpdate = useCallback(async (payload: any) => {
@@ -140,6 +144,11 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
 
   // Listen for subscription changes with error protection
   useEffect(() => {
+    // TEMPORARILY DISABLED: Realtime subscriptions are causing infinite loops and production crashes
+    // TODO: Re-implement realtime subscriptions with proper error handling later
+    console.log('Realtime subscriptions temporarily disabled to prevent infinite loops');
+    return;
+
     if (!userId || errorCount.current >= 3) return;
 
     // Clean up existing subscription first
@@ -226,8 +235,8 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
   }, [featureFlags]);
 
   const checkUsageLimit = useCallback(async (metricType: MetricType) => {
-    if (!userId) {
-      return { canPerform: false, currentUsage: 0, limit: 0 };
+    if (!userId || disableSubscriptions) {
+      return { canPerform: true, currentUsage: 0, limit: null };
     }
 
     try {
@@ -238,38 +247,38 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
         limit: result.limit
       };
     } catch (error) {
-      console.error('Error checking usage limit:', error);
-      return { canPerform: false, currentUsage: 0, limit: 0 };
+      console.warn('Error checking usage limit, allowing action:', error);
+      return { canPerform: true, currentUsage: 0, limit: null };
     }
-  }, [userId]);
+  }, [userId, disableSubscriptions]);
 
   const incrementUsage = useCallback(async (metricType: MetricType) => {
-    if (!userId) return;
+    if (!userId || disableSubscriptions) return;
 
     try {
       await subscriptionService.incrementUsage(userId, metricType);
     } catch (error) {
-      console.error('Error incrementing usage:', error);
-      throw error;
+      console.warn('Error incrementing usage (non-blocking):', error);
+      // Don't throw - analytics failures shouldn't break UX
     }
-  }, [userId]);
+  }, [userId, disableSubscriptions]);
 
   const trackEvent = useCallback(async (eventType: string, metadata?: any) => {
-    if (!userId) return;
+    if (!userId || disableSubscriptions) return;
 
     try {
       await subscriptionService.trackEvent(eventType as any, userId, undefined, metadata);
     } catch (error) {
-      console.error('Error tracking event:', error);
+      console.warn('Error tracking event (non-blocking):', error);
       // Don't throw - analytics failures shouldn't break UX
     }
-  }, [userId]);
+  }, [userId, disableSubscriptions]);
 
   const refreshTier = useCallback(async () => {
-    if (errorCount.current < 3) {
+    if (errorCount.current < 3 && !disableSubscriptions) {
       await loadTierData();
     }
-  }, [loadTierData]);
+  }, [loadTierData, disableSubscriptions]);
 
   return {
     tier,

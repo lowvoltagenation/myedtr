@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@supabase/ssr';
 import { StripeService } from '@/lib/stripe/service';
 import { StripePlan } from '@/lib/stripe/config';
 
@@ -23,7 +23,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll() {
+            /* no-op in route */
+          },
+        },
+      }
+    );
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {

@@ -12,18 +12,30 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
+// Create supabase client once outside component to prevent recreations
+const supabase = createClient();
+
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [success, setSuccess] = useState(false);
   const [canceled, setCanceled] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   const { createCheckoutSession, createPortalSession, loading, error } = useStripe();
+  
+  // Always call useSubscription at the top level - never conditionally
   const subscription = useSubscription(user?.id);
-  const supabase = createClient();
+
+  // Handle client-side only logic
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Check for URL parameters to show success/cancel messages
   useEffect(() => {
+    if (!isClient) return;
+    
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'true') {
       setSuccess(true);
@@ -35,23 +47,30 @@ export default function PricingPage() {
       // Clear the URL parameter
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+  }, [isClient]);
 
   // Get current user
   useEffect(() => {
+    if (!isClient) return;
+    
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+      } catch (error) {
+        console.error('Error getting user:', error);
+        setUser(null);
+      }
     };
     getUser();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user || null);
     });
 
-    return () => subscription.unsubscribe();
-  }, [supabase]);
+    return () => authSubscription.unsubscribe();
+  }, [isClient]);
 
   const tiers = Object.values(TIER_CONFIG);
 
@@ -117,7 +136,7 @@ export default function PricingPage() {
       return;
     }
 
-    if (planId === 'premium') {
+    if (planId === 'premium' || planId === 'featured') {
       await createCheckoutSession('featured');
     } else if (planId === 'pro') {
       await createCheckoutSession('pro');
@@ -133,7 +152,7 @@ export default function PricingPage() {
     const currentTier = subscription.tier;
     const isCurrentTier = currentTier === tier.id;
     const isFreeTier = tier.id === 'free';
-    const hasActiveSubscription = currentTier !== 'free'; // Simplified for now
+    const hasActiveSubscription = currentTier !== 'free';
 
     if (isFreeTier) {
       return {
@@ -155,7 +174,7 @@ export default function PricingPage() {
 
     if (hasActiveSubscription && !isCurrentTier) {
       return {
-        text: currentTier === 'pro' && tier.id === 'premium' ? 'Upgrade to Featured' : 'Change Plan',
+        text: currentTier === 'pro' && tier.id === 'featured' ? 'Upgrade to Featured' : 'Change Plan',
         disabled: false,
         variant: 'default' as const,
         onClick: () => handleSubscribe(tier.id),
@@ -169,6 +188,19 @@ export default function PricingPage() {
       onClick: () => handleSubscribe(tier.id),
     };
   };
+
+  // Don't render until client-side to prevent hydration mismatches
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 py-12">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 py-12">
@@ -209,6 +241,19 @@ export default function PricingPage() {
             </div>
           </div>
         )}
+
+        {subscription.error && (
+          <div className="mb-8 mx-auto max-w-md">
+            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+              <XCircle className="w-5 h-5" />
+              <div>
+                <p className="font-medium">Subscription Error</p>
+                <p className="text-sm">{subscription.error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-foreground mb-4">

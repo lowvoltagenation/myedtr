@@ -9,9 +9,10 @@ export interface FeatureAccess {
   message?: string;
 }
 
-export class FeatureGate {
-  private supabase = createClient();
+// Create supabase client once outside class to prevent recreations
+const supabase = createClient();
 
+export class FeatureGate {
   /**
    * Check if user can upload portfolio videos
    */
@@ -25,7 +26,7 @@ export class FeatureGate {
     }
 
     // Count current portfolio videos
-    const { count: currentCount, error } = await this.supabase
+    const { count: currentCount, error } = await supabase
       .from('portfolio_videos')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
@@ -69,7 +70,7 @@ export class FeatureGate {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const { count: currentCount, error } = await this.supabase
+    const { count: currentCount, error } = await supabase
       .from('messages')
       .select('*', { count: 'exact', head: true })
       .eq('sender_id', userId)

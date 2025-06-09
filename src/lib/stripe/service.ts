@@ -135,14 +135,14 @@ export class StripeService {
     }
 
     // Map Stripe plan to our tier system
-    const tierLevel = plan === 'pro' ? 'pro' : 'premium';
+    const tierLevel = plan === 'pro' ? 'pro' : 'featured';
 
     // Update subscription in database
     await this.supabase
       .from('subscriptions')
       .update({
         stripe_subscription_id: subscription.id,
-        tier_level: tierLevel,
+        tier_id: tierLevel,
         status: subscription.status,
         current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
         current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
@@ -164,12 +164,12 @@ export class StripeService {
     }
 
     const plan = subscription.metadata.plan;
-    const tierLevel = plan === 'pro' ? 'pro' : 'premium';
+    const tierLevel = plan === 'pro' ? 'pro' : 'featured';
 
     await this.supabase
       .from('subscriptions')
       .update({
-        tier_level: tierLevel,
+        tier_id: tierLevel,
         status: subscription.status,
         current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
         current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
@@ -187,7 +187,7 @@ export class StripeService {
     await this.supabase
       .from('subscriptions')
       .update({
-        tier_level: 'free',
+        tier_id: 'free',
         status: 'cancelled',
         updated_at: new Date().toISOString(),
       })

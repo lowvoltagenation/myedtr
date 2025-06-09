@@ -9,6 +9,9 @@ import { useStripe } from "@/hooks/useStripe";
 import { useSubscription } from "@/hooks/useSubscription";
 import { createClient } from "@/lib/supabase/client";
 
+// Create supabase client once outside component to prevent recreations
+const supabase = createClient();
+
 export default function StripeTestPage() {
   const [user, setUser] = useState<any>(null);
   const [testResults, setTestResults] = useState<Record<string, boolean>>({});
@@ -16,7 +19,6 @@ export default function StripeTestPage() {
 
   const { createCheckoutSession, createPortalSession, loading, error } = useStripe();
   const subscription = useSubscription(user?.id);
-  const supabase = createClient();
 
   useEffect(() => {
     const getUser = async () => {
@@ -24,7 +26,7 @@ export default function StripeTestPage() {
       setUser(user);
     };
     getUser();
-  }, [supabase]);
+  }, []); // Remove supabase from dependency array since it's now stable
 
   const testAPI = async (testName: string, apiCall: () => Promise<any>) => {
     setTesting(prev => ({ ...prev, [testName]: true }));

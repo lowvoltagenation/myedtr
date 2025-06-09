@@ -39,7 +39,7 @@ export const PLAN_LIMITS: Record<string, PlanLimits> = {
     portfolioUpload: true,
     analytics: true,
   },
-  premium: {
+  featured: {
     maxProjects: -1, // unlimited
     maxApplications: -1, // unlimited
     maxMessages: -1, // unlimited
@@ -54,14 +54,14 @@ export async function getUserPlan(userId: string): Promise<string> {
   const supabase = createClient();
   
   try {
-    // Get editor profile tier level
-    const { data: profile } = await supabase
-      .from('editor_profiles')
-      .select('tier_level')
+    // Get user subscription tier level
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('tier_id')
       .eq('user_id', userId)
       .single();
 
-    return profile?.tier_level || 'free';
+    return subscription?.tier_id || 'free';
   } catch (error) {
     console.error('Error fetching user plan:', error);
     return 'free';
@@ -172,23 +172,28 @@ export function formatUsage(current: number, limit: number): string {
   return `${current}/${limit} used`;
 }
 
-export class SubscriptionService {
-  private supabase = createClient();
+// Create supabase client once outside class to prevent recreations
+const supabase = createClient();
 
+export class SubscriptionService {
   // Get user's current subscription tier
   async getUserTier(userId: string): Promise<SubscriptionTier> {
     try {
-      const { data, error } = await this.supabase
-        .from('users')
-        .select('current_tier_id')
-        .eq('id', userId)
+      const { data: subscription, error } = await supabase
+        .from('subscriptions')
+        .select('tier_id')
+        .eq('user_id', userId)
         .single();
 
-      if (error) throw error;
-      return (data?.current_tier_id as SubscriptionTier) || 'free';
+      if (error) {
+        console.error('Error fetching user tier:', error);
+        return 'free'; // Default to free on error
+      }
+
+      return (subscription?.tier_id as SubscriptionTier) || 'free';
     } catch (error) {
-      console.error('Error fetching user tier:', error);
-      return 'free'; // Default to free on error
+      console.error('Error in getUserTier:', error);
+      return 'free';
     }
   }
 
@@ -211,7 +216,7 @@ export class SubscriptionService {
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-      const { data, error } = await this.supabase
+      const { data, error } = await supabase
         .from('usage_tracking')
         .select('metric_value')
         .eq('user_id', userId)
@@ -255,7 +260,7 @@ export class SubscriptionService {
       const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
       // Try to update existing record
-      const { data: existingData, error: fetchError } = await this.supabase
+      const { data: existingData, error: fetchError } = await supabase
         .from('usage_tracking')
         .select('id, metric_value')
         .eq('user_id', userId)
@@ -266,7 +271,7 @@ export class SubscriptionService {
 
       if (existingData) {
         // Update existing record
-        const { error: updateError } = await this.supabase
+        const { error: updateError } = await supabase
           .from('usage_tracking')
           .update({ 
             metric_value: existingData.metric_value + incrementBy,
@@ -277,7 +282,7 @@ export class SubscriptionService {
         if (updateError) throw updateError;
       } else {
         // Create new record
-        const { error: insertError } = await this.supabase
+        const { error: insertError } = await supabase
           .from('usage_tracking')
           .insert({
             user_id: userId,
@@ -303,7 +308,7 @@ export class SubscriptionService {
     metadata?: Record<string, any>
   ): Promise<void> {
     try {
-      const { error } = await this.supabase
+      const { error } = await supabase
         .from('analytics_events')
         .insert({
           event_type: eventType,
@@ -343,7 +348,7 @@ export class SubscriptionService {
 
     try {
       // Get profile views
-      const { data: profileViews } = await this.supabase
+      const { data: profileViews } = await supabase
         .from('analytics_events')
         .select('created_at')
         .eq('event_type', 'profile_view')
@@ -351,7 +356,7 @@ export class SubscriptionService {
         .gte('created_at', startDate.toISOString());
 
       // Get messages received
-      const { data: messagesReceived } = await this.supabase
+      const { data: messagesReceived } = await supabase
         .from('analytics_events')
         .select('created_at')
         .eq('event_type', 'message_received')
@@ -359,7 +364,7 @@ export class SubscriptionService {
         .gte('created_at', startDate.toISOString());
 
       // Get search appearances
-      const { data: searchAppearances } = await this.supabase
+      const { data: searchAppearances } = await supabase
         .from('analytics_events')
         .select('created_at')
         .eq('event_type', 'search_appearance')
@@ -398,7 +403,7 @@ export class SubscriptionService {
   // Get spotlight analytics (Featured tier only)
   private async getSpotlightAnalytics(userId: string, timeframe: string) {
     try {
-      const { data } = await this.supabase
+      const { data } = await supabase
         .from('spotlight_rotations')
         .select('clicks, impressions, week_start')
         .eq('user_id', userId)
@@ -419,14 +424,14 @@ export class SubscriptionService {
   // Update user's subscription tier
   async updateUserTier(userId: string, newTier: SubscriptionTier, subscriptionId?: string): Promise<void> {
     try {
-      const { error } = await this.supabase
-        .from('users')
+      const { error } = await supabase
+        .from('subscriptions')
         .update({ 
-          current_tier_id: newTier,
-          subscription_status: newTier === 'free' ? 'free' : 'active',
+          tier_id: newTier,
+          status: newTier === 'free' ? 'active' : 'active',
           updated_at: new Date().toISOString()
         })
-        .eq('id', userId);
+        .eq('user_id', userId);
 
       if (error) throw error;
 
@@ -446,7 +451,7 @@ export class SubscriptionService {
     const userTier = await this.getUserTier(userId);
     
     try {
-      const { data: flags } = await this.supabase
+      const { data: flags } = await supabase
         .from('feature_flags')
         .select('id, is_enabled, target_tiers')
         .eq('is_enabled', true);

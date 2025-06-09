@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -45,6 +45,9 @@ interface UserProfile {
   user_type: 'editor' | 'client';
 }
 
+// Create supabase client once outside component
+const supabase = createClient();
+
 export function Header() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -52,36 +55,17 @@ export function Header() {
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Use refs to track current state and prevent infinite loops
-  const currentUserIdRef = useRef<string | null>(null);
-  const fetchingProfileRef = useRef(false);
-  const supabaseRef = useRef(createClient());
-  
   const router = useRouter();
   const pathname = usePathname();
 
   // Add subscription hook
   const subscription = useSubscription(user?.id);
 
-  const fetchProfile = useCallback(async (userId: string, sessionUser: any) => {
-    // Prevent multiple simultaneous calls
-    if (fetchingProfileRef.current) {
-      return;
-    }
-
-    // Don't fetch if we already have this user's profile
-    if (currentUserIdRef.current === userId && profile) {
-      return;
-    }
-
-    fetchingProfileRef.current = true;
-    currentUserIdRef.current = userId;
-    
+  // Simple profile fetching function
+  const loadUserProfile = async (userId: string, sessionUser: any) => {
     try {
-      console.log('Fetching profile for user:', userId);
-      
       // Check if user is an editor or client
-      const { data: userData, error: userError } = await supabaseRef.current
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('user_type, avatar_url, name, bio, location')
         .eq('id', userId)
@@ -99,11 +83,9 @@ export function Header() {
         return;
       }
 
-      console.log('User data fetched:', userData);
-
       if (userData?.user_type === 'editor') {
         // Get editor profile with explicit avatar_url selection
-        const { data: editorProfile, error: profileError } = await supabaseRef.current
+        const { data: editorProfile, error: profileError } = await supabase
           .from('editor_profiles')
           .select('id, name, avatar_url, tier_level')
           .eq('user_id', userId)
@@ -146,59 +128,53 @@ export function Header() {
         user_type: 'client',
         tier_level: 'free'
       });
-    } finally {
-      fetchingProfileRef.current = false;
     }
-  }, [profile]);
+  };
 
+  // Initialize auth state - runs only once
   useEffect(() => {
     let mounted = true;
     
-    // Get initial session
-    const getSession = async () => {
-      if (!mounted) return;
-      
-      const { data: { session } } = await supabaseRef.current.auth.getSession();
-      const newUser = session?.user || null;
-      const newUserId = newUser?.id || null;
-      
-      // Only update if user ID actually changed
-      if (currentUserIdRef.current !== newUserId) {
-        setUser(newUser);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (newUser && newUserId) {
-          await fetchProfile(newUserId, newUser);
+        if (!mounted) return;
+        
+        if (session?.user) {
+          setUser(session.user);
+          await loadUserProfile(session.user.id, session.user);
         } else {
+          setUser(null);
           setProfile(null);
-          currentUserIdRef.current = null;
         }
-      }
-      
-      if (mounted) {
+        
         setLoading(false);
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
-    getSession();
+    initializeAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabaseRef.current.auth.onAuthStateChange(
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
         
-        const newUser = session?.user || null;
-        const newUserId = newUser?.id || null;
-        
-        // Only update if user ID actually changed
-        if (currentUserIdRef.current !== newUserId) {
-          setUser(newUser);
-          
-          if (newUser && newUserId) {
-            await fetchProfile(newUserId, newUser);
+        try {
+          if (session?.user) {
+            setUser(session.user);
+            await loadUserProfile(session.user.id, session.user);
           } else {
+            setUser(null);
             setProfile(null);
-            currentUserIdRef.current = null;
           }
+        } catch (error) {
+          console.error('Error handling auth change:', error);
         }
       }
     );
@@ -207,15 +183,13 @@ export function Header() {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Empty deps - only run once
+  }, []); // Empty dependency array - runs only once
 
   // Handle profile update events
   useEffect(() => {
     const handleProfileUpdate = () => {
-      if (currentUserIdRef.current && user) {
-        // Force a complete refresh
-        setProfile(null);
-        setTimeout(() => fetchProfile(currentUserIdRef.current!, user), 100);
+      if (user?.id) {
+        loadUserProfile(user.id, user);
       }
     };
 
@@ -224,11 +198,10 @@ export function Header() {
     return () => {
       window.removeEventListener('profileUpdated', handleProfileUpdate);
     };
-  }, []); // Empty deps - only set up once
+  }, [user?.id]); // Only depend on user ID
 
   const handleSignOut = async () => {
-    await supabaseRef.current.auth.signOut();
-    currentUserIdRef.current = null;
+    await supabase.auth.signOut();
     setProfile(null);
     setUser(null);
     router.push('/');
@@ -338,8 +311,6 @@ export function Header() {
                             src={profile.avatar_url}
                             alt={profile?.name || "User"}
                             className="h-8 w-8 rounded-full object-cover"
-                            onLoad={() => console.log('Header avatar loaded!')}
-                            onError={(e) => console.error('Header avatar failed:', e)}
                           />
                         ) : (
                           <div className="h-8 w-8 rounded-full gradient-bg flex items-center justify-center text-white text-sm font-bold">

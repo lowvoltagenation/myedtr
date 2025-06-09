@@ -36,7 +36,7 @@ export default function HomePage() {
                 </Button>
               </Link>
               <Link href="/signup?type=editor">
-                <Button variant="outline" size="lg" className="btn-secondary px-8 py-4 text-lg w-full sm:w-auto rounded-xl">
+                <Button size="lg" className="btn-primary bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-8 py-4 text-lg w-full sm:w-auto rounded-xl font-semibold text-white border-0">
                   Join as Editor
                 </Button>
               </Link>
@@ -183,7 +183,7 @@ export default function HomePage() {
               </Button>
             </Link>
             <Link href="/signup?type=editor">
-              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white hover:text-primary px-8 py-4 text-lg w-full sm:w-auto rounded-xl font-semibold transition-all duration-300">
+              <Button size="lg" className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-4 text-lg w-full sm:w-auto rounded-xl font-semibold border-0 transition-all duration-300">
                 Start Editing
               </Button>
             </Link>

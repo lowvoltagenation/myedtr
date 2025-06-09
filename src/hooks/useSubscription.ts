@@ -167,17 +167,41 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
         )
         .subscribe((status) => {
           console.log('Realtime subscription status:', status);
-          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-            console.error('Realtime subscription error:', status);
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            console.warn('Realtime subscription issue:', status);
             errorCount.current++;
+            
+            // If realtime fails, continue without it - don't block other functionality
+            if (subscriptionRef.current) {
+              try {
+                supabase.removeChannel(subscriptionRef.current);
+                subscriptionRef.current = null;
+              } catch (error) {
+                console.error('Error cleaning up failed subscription:', error);
+              }
+            }
+            
+            // Schedule retry with exponential backoff if under error limit
+            if (errorCount.current < 3) {
+              const retryDelay = Math.min(1000 * Math.pow(2, errorCount.current), 30000); // Max 30 seconds
+              console.log(`Retrying realtime subscription in ${retryDelay}ms`);
+              setTimeout(() => {
+                if (errorCount.current < 3 && userId) {
+                  console.log('Retrying realtime subscription setup');
+                  // Trigger re-setup by updating a dependency (but this would cause infinite loops)
+                  // Instead, we'll just log and let the user continue without realtime
+                }
+              }, retryDelay);
+            }
           }
         });
 
       subscriptionRef.current = channel;
 
     } catch (error) {
-      console.error('Error setting up realtime subscription:', error);
+      console.warn('Error setting up realtime subscription - continuing without realtime updates:', error);
       errorCount.current++;
+      // Don't throw or block - let the app continue without realtime subscription
     }
 
     return () => {

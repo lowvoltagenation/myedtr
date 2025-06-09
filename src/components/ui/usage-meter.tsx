@@ -45,12 +45,12 @@ export function UsageMeter({
   return (
     <div className={`space-y-3 ${className}`}>
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
           {metricName}
         </span>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-gray-500 dark:text-gray-400">
           {isUnlimited ? (
-            <span className="text-green-600 font-medium">Unlimited</span>
+            <span className="text-green-600 dark:text-green-400 font-medium">Unlimited</span>
           ) : (
             `${current}/${limit}`
           )}
@@ -66,18 +66,18 @@ export function UsageMeter({
           />
           
           {isAtLimit && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertTriangle className="h-4 w-4 text-red-500" />
-              <AlertDescription className="text-red-700">
+            <Alert className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+              <AlertTriangle className="h-4 w-4 text-red-500 dark:text-red-400" />
+              <AlertDescription className="text-red-700 dark:text-red-400">
                 You've reached your {metricName.toLowerCase()} limit.
               </AlertDescription>
             </Alert>
           )}
 
           {isNearLimit && !isAtLimit && (
-            <Alert className="border-yellow-200 bg-yellow-50">
-              <AlertTriangle className="h-4 w-4 text-yellow-500" />
-              <AlertDescription className="text-yellow-700">
+            <Alert className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20">
+              <AlertTriangle className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
+              <AlertDescription className="text-yellow-700 dark:text-yellow-400">
                 You're approaching your {metricName.toLowerCase()} limit.
               </AlertDescription>
             </Alert>
@@ -86,25 +86,23 @@ export function UsageMeter({
       )}
 
       {shouldShowUpgrade && (
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                Need more {metricName.toLowerCase()}?
-              </p>
-              <p className="text-xs text-gray-600">
-                Upgrade to {nextTier === 'pro' ? 'Pro' : 'MyEdtr Verified'} for {
-                  nextTier === 'featured' ? 'unlimited' : 'increased limits'
-                }
-              </p>
-            </div>
-            <Link href="/pricing">
-              <Button size="sm" className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
-                <ArrowUp className="w-3 h-3 mr-1" />
-                Upgrade
-              </Button>
-            </Link>
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4 space-y-3">
+          <div className="text-center space-y-2">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              Need more {metricName.toLowerCase()}?
+            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              Upgrade to {nextTier === 'pro' ? 'Pro' : 'MyEdtr Verified'} for {
+                nextTier === 'featured' ? 'unlimited' : 'increased limits'
+              }
+            </p>
           </div>
+          <Link href="/pricing" className="block w-full">
+            <Button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
+              <ArrowUp className="w-4 h-4 mr-2" />
+              Upgrade
+            </Button>
+          </Link>
         </div>
       )}
     </div>

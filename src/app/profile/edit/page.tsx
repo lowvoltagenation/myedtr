@@ -98,8 +98,14 @@ export default function EditProfilePage() {
 
     try {
       const [portfolioUsage, messagesUsage] = await Promise.all([
-        subscription.checkUsageLimit('portfolio_uploads'),
-        subscription.checkUsageLimit('messages_sent')
+        subscription.checkUsageLimit('portfolio_uploads').catch(err => {
+          console.warn('Portfolio usage tracking unavailable:', err);
+          return { currentUsage: 0, limit: null, canPerform: true };
+        }),
+        subscription.checkUsageLimit('messages_sent').catch(err => {
+          console.warn('Messages usage tracking unavailable:', err);
+          return { currentUsage: 0, limit: null, canPerform: true };
+        })
       ]);
 
       setUsageData({
@@ -107,7 +113,12 @@ export default function EditProfilePage() {
         messagesSent: messagesUsage.currentUsage
       });
     } catch (error) {
-      console.error('Error loading usage data:', error);
+      console.warn('Usage tracking not available, using defaults:', error);
+      // Set default values if usage tracking is not available
+      setUsageData({
+        portfolioUploads: 0,
+        messagesSent: 0
+      });
     }
   };
 
@@ -128,7 +139,14 @@ export default function EditProfilePage() {
   // Load usage data when subscription is ready
   useEffect(() => {
     if (user?.id && !subscription.loading) {
-      loadUsageData();
+      loadUsageData().catch(error => {
+        console.warn('Usage data loading failed, continuing without usage tracking:', error);
+        // Set safe defaults and continue
+        setUsageData({
+          portfolioUploads: 0,
+          messagesSent: 0
+        });
+      });
     }
   }, [user?.id, subscription.loading]);
 
@@ -365,6 +383,7 @@ export default function EditProfilePage() {
       setTimeout(() => setSuccess(null), 3000);
 
     } catch (err) {
+      console.error('Profile save error:', err);
       setError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
       setSaving(false);
@@ -382,13 +401,14 @@ export default function EditProfilePage() {
       portfolio_urls: [...prev.portfolio_urls, ""]
     }));
 
-    // Increment usage tracking if this is a new upload
+    // Increment usage tracking if this is a new upload (optional - don't let errors block functionality)
     if (user?.id && subscription.tier) {
       try {
         await subscription.incrementUsage('portfolio_uploads');
         await portfolioLimits.refresh(); // Refresh limits
       } catch (error) {
-        console.error('Error tracking portfolio upload:', error);
+        console.warn('Usage tracking not available, continuing without tracking:', error);
+        // Don't let usage tracking errors prevent portfolio functionality
       }
     }
   };
@@ -711,28 +731,6 @@ export default function EditProfilePage() {
                 </Card>
               </>
             )}
-
-            {/* Save Button */}
-            <div className="flex justify-end">
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                size="lg"
-                className="min-w-[140px]"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Profile
-                  </>
-                )}
-              </Button>
-            </div>
           </div>
 
           {/* Sidebar */}
@@ -789,23 +787,22 @@ export default function EditProfilePage() {
             {/* Current Subscription */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 dark:text-white">
-                  <User className="w-5 h-5" />
-                  Subscription Status
-                </CardTitle>
+                <CardTitle className="dark:text-white">Subscription Status</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {!subscription.loading && (
-                  <div className="flex items-center justify-center">
-                    <TierBadge tier={subscription.tier} size="lg" />
+                  <div className="w-full">
+                    <TierBadge tier={subscription.tier} size="lg" className="w-full justify-center" />
                   </div>
                 )}
 
                 {subscription.tier === 'free' && (
-                  <div className="text-center space-y-3">
-                    <p className="text-sm text-gray-600 dark:text-muted-foreground">
-                      You're on the free plan with limited features.
-                    </p>
+                  <div className="text-center space-y-4">
+                    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+                      <p className="text-sm text-gray-600 dark:text-muted-foreground">
+                        You're on the free plan with limited features.
+                      </p>
+                    </div>
                     <Link href="/pricing">
                       <Button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
                         Upgrade to Pro
@@ -815,10 +812,12 @@ export default function EditProfilePage() {
                 )}
 
                 {subscription.tier === 'pro' && (
-                  <div className="text-center space-y-3">
-                    <p className="text-sm text-gray-600 dark:text-muted-foreground">
-                      You have access to professional features.
-                    </p>
+                  <div className="text-center space-y-4">
+                    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+                      <p className="text-sm text-gray-600 dark:text-muted-foreground">
+                        You have access to professional features.
+                      </p>
+                    </div>
                     <Link href="/pricing">
                       <Button variant="outline" className="w-full">
                         Upgrade to Featured
@@ -829,9 +828,11 @@ export default function EditProfilePage() {
 
                 {subscription.tier === 'featured' && (
                   <div className="text-center">
-                    <p className="text-sm text-gray-600 dark:text-muted-foreground">
-                      You have access to all premium features!
-                    </p>
+                    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+                      <p className="text-sm text-gray-600 dark:text-muted-foreground">
+                        You have access to all premium features!
+                      </p>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -872,6 +873,28 @@ export default function EditProfilePage() {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Save Button - moved outside grid to appear at bottom on mobile */}
+        <div className="mt-8">
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            size="lg"
+            className="w-full"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save Profile
+              </>
+            )}
+          </Button>
         </div>
       </div>
     </div>

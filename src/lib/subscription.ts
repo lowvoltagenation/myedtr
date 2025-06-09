@@ -225,10 +225,10 @@ export class SubscriptionService {
         .lte('period_end', monthEnd.toISOString())
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        // PGRST116 = no rows found, which is expected
-        console.warn('Usage tracking table not found or error:', error);
-        return 0; // Return 0 usage if table doesn't exist
+      if (error) {
+        // Handle any error from Supabase (including 406, table not found, etc.)
+        console.warn('Usage tracking not available:', error.code, error.message);
+        return 0; // Return 0 usage if table doesn't exist or any error occurs
       }
       return data?.metric_value || 0;
     } catch (error) {
@@ -273,6 +273,12 @@ export class SubscriptionService {
         .lte('period_end', monthEnd.toISOString())
         .single();
 
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        // If table doesn't exist or other error, just return silently
+        console.warn('Usage tracking not available for increment:', fetchError.code, fetchError.message);
+        return;
+      }
+
       if (existingData) {
         // Update existing record
         const { error: updateError } = await supabase
@@ -283,7 +289,10 @@ export class SubscriptionService {
           })
           .eq('id', existingData.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.warn('Error updating usage tracking:', updateError.code, updateError.message);
+          return;
+        }
       } else {
         // Create new record
         const { error: insertError } = await supabase
@@ -296,10 +305,13 @@ export class SubscriptionService {
             period_end: monthEnd.toISOString()
           });
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.warn('Error inserting usage tracking:', insertError.code, insertError.message);
+          return;
+        }
       }
     } catch (error) {
-      console.warn('Error incrementing usage (table may not exist):', error);
+      console.warn('Usage tracking error (table may not exist):', error);
       // Don't throw - if usage tracking table doesn't exist, just log and continue
       // This allows the app to function without usage tracking
     }

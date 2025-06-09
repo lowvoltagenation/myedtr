@@ -31,8 +31,8 @@ export function TierBadge({ tier, size = 'md', showIcon = true, className = '' }
         return {
           label: 'Free',
           icon: Zap,
-          className: 'bg-gray-100 text-gray-700 border-gray-200',
-          iconColor: 'text-gray-500'
+          className: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700',
+          iconColor: 'text-gray-500 dark:text-gray-400'
         };
     }
   };

@@ -15,7 +15,7 @@ export default async function ClientDashboard() {
   }
 
   // Get user's projects
-  const { data: projects } = await supabase
+  const { data: projects, error: projectsError } = await supabase
     .from('projects')
     .select(`
       *,
@@ -28,6 +28,20 @@ export default async function ClientDashboard() {
     .eq('client_id', user.id)
     .order('created_at', { ascending: false });
 
+  // Debug logging
+  console.log('Current user ID:', user.id);
+  console.log('Projects query error:', projectsError);
+  console.log('Raw projects data:', projects);
+  console.log('Number of projects found:', projects?.length || 0);
+
+  // Also fetch all projects to see if the issue is with the filter
+  const { data: allProjects } = await supabase
+    .from('projects')
+    .select('id, title, client_id, status, created_at')
+    .order('created_at', { ascending: false });
+  
+  console.log('All projects in database:', allProjects);
+  
   const activeProjects = projects?.filter(p => p.status === 'open') || [];
   const completedProjects = projects?.filter(p => p.status === 'completed') || [];
   const totalApplications = projects?.reduce((acc, p) => acc + (p.project_applications?.length || 0), 0) || 0;
@@ -69,6 +83,36 @@ export default async function ClientDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Debug Section - Remove this once issue is resolved */}
+        <Card className="mb-8 border-yellow-200 bg-yellow-50">
+          <CardHeader>
+            <CardTitle className="text-yellow-800">Debug Information</CardTitle>
+            <CardDescription className="text-yellow-700">
+              This debug section will help identify the issue. Remove once resolved.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 text-sm font-mono">
+              <p><strong>User ID:</strong> {user.id}</p>
+              <p><strong>Projects Query Error:</strong> {projectsError ? JSON.stringify(projectsError) : 'None'}</p>
+              <p><strong>Number of user projects:</strong> {projects?.length || 0}</p>
+              <p><strong>Total projects in database:</strong> {allProjects?.length || 0}</p>
+              {allProjects && allProjects.length > 0 && (
+                <div>
+                  <p><strong>Recent projects in database:</strong></p>
+                  <ul className="pl-4">
+                    {allProjects.slice(0, 5).map(p => (
+                      <li key={p.id} className="text-xs">
+                        {p.title} (client_id: {p.client_id}, status: {p.status})
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

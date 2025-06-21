@@ -84,13 +84,22 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
           status: 'open'
         });
 
+      console.log('Creating project with client_id:', userId);
+      console.log('Project creation error:', insertError);
+
       if (insertError) {
+        console.error('Failed to create project:', insertError);
         throw new Error(insertError.message);
       }
 
-      // Success! Redirect to dashboard
+      console.log('Project created successfully!');
+
+      // Success! Redirect to dashboard with force refresh
       router.push("/dashboard/client");
       router.refresh();
+      
+      // Also trigger a window reload as backup to ensure fresh data
+      window.location.href = "/dashboard/client";
 
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");

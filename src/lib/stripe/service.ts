@@ -1,4 +1,4 @@
-import { stripe, STRIPE_CONFIG, StripePlan, StripeSubscriptionStatus } from './config';
+import { stripe, STRIPE_CONFIG, StripePlan, StripeSubscriptionStatus, STRIPE_MODE, isStripeConfigured } from './config';
 import { createClient } from '@/lib/supabase/server';
 import { Database } from '@/types/database';
 
@@ -9,6 +9,12 @@ export class StripeService {
 
   constructor(supabase: SupabaseClient) {
     this.supabase = supabase;
+    
+    // Log current Stripe mode for debugging
+    console.log(`StripeService initialized in ${STRIPE_MODE} mode`, {
+      isConfigured: isStripeConfigured(),
+      hasStripeInstance: !!stripe
+    });
   }
 
   /**
@@ -27,7 +33,7 @@ export class StripeService {
     }
 
     if (!stripe) {
-      throw new Error('Stripe not initialized - missing environment variables');
+      throw new Error(`Stripe not initialized - missing ${STRIPE_MODE} mode environment variables`);
     }
 
     // Create new Stripe customer
@@ -36,6 +42,7 @@ export class StripeService {
       name,
       metadata: {
         user_id: userId,
+        stripe_mode: STRIPE_MODE, // Track which mode was used to create customer
       },
     });
 
@@ -45,6 +52,7 @@ export class StripeService {
       .update({ stripe_customer_id: customer.id })
       .eq('user_id', userId);
 
+    console.log(`Created Stripe customer in ${STRIPE_MODE} mode:`, customer.id);
     return customer.id;
   }
 
@@ -60,11 +68,21 @@ export class StripeService {
     name?: string
   ): Promise<string> {
     if (!stripe) {
-      throw new Error('Stripe not initialized - missing environment variables');
+      throw new Error(`Stripe not initialized - missing ${STRIPE_MODE} mode environment variables`);
     }
 
     const customerId = await this.getOrCreateCustomer(userId, email, name);
     const priceId = STRIPE_CONFIG.plans[plan].priceId;
+
+    if (!priceId) {
+      throw new Error(`Missing price ID for ${plan} plan in ${STRIPE_MODE} mode`);
+    }
+
+    console.log(`Creating checkout session in ${STRIPE_MODE} mode:`, {
+      plan,
+      priceId,
+      customerId
+    });
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -81,11 +99,13 @@ export class StripeService {
       metadata: {
         user_id: userId,
         plan: plan,
+        stripe_mode: STRIPE_MODE,
       },
       subscription_data: {
         metadata: {
           user_id: userId,
           plan: plan,
+          stripe_mode: STRIPE_MODE,
         },
       },
     });
@@ -102,7 +122,7 @@ export class StripeService {
    */
   async createPortalSession(userId: string, returnUrl: string): Promise<string> {
     if (!stripe) {
-      throw new Error('Stripe not initialized - missing environment variables');
+      throw new Error(`Stripe not initialized - missing ${STRIPE_MODE} mode environment variables`);
     }
 
     const { data: subscription } = await this.supabase
@@ -114,6 +134,8 @@ export class StripeService {
     if (!subscription?.stripe_customer_id) {
       throw new Error('No Stripe customer found for user');
     }
+
+    console.log(`Creating portal session in ${STRIPE_MODE} mode for customer:`, subscription.stripe_customer_id);
 
     const session = await stripe.billingPortal.sessions.create({
       customer: subscription.stripe_customer_id,
@@ -129,6 +151,15 @@ export class StripeService {
   async handleSubscriptionCreated(subscription: any): Promise<void> {
     const userId = subscription.metadata.user_id;
     const plan = subscription.metadata.plan;
+    const subscriptionMode = subscription.metadata.stripe_mode || 'unknown';
+
+    console.log(`Processing subscription created webhook:`, {
+      subscriptionId: subscription.id,
+      userId,
+      plan,
+      currentMode: STRIPE_MODE,
+      subscriptionMode
+    });
 
     if (!userId || !plan) {
       throw new Error('Missing user_id or plan in subscription metadata');
@@ -150,7 +181,7 @@ export class StripeService {
       })
       .eq('user_id', userId);
 
-    console.log(`Subscription created for user ${userId}: ${plan} tier`);
+    console.log(`Subscription created for user ${userId}: ${plan} tier in ${STRIPE_MODE} mode`);
   }
 
   /**
@@ -158,6 +189,15 @@ export class StripeService {
    */
   async handleSubscriptionUpdated(subscription: any): Promise<void> {
     const userId = subscription.metadata.user_id;
+    const subscriptionMode = subscription.metadata.stripe_mode || 'unknown';
+
+    console.log(`Processing subscription updated webhook:`, {
+      subscriptionId: subscription.id,
+      userId,
+      status: subscription.status,
+      currentMode: STRIPE_MODE,
+      subscriptionMode
+    });
 
     if (!userId) {
       throw new Error('Missing user_id in subscription metadata');
@@ -177,13 +217,21 @@ export class StripeService {
       })
       .eq('stripe_subscription_id', subscription.id);
 
-    console.log(`Subscription updated for user ${userId}: ${subscription.status}`);
+    console.log(`Subscription updated for user ${userId}: ${subscription.status} in ${STRIPE_MODE} mode`);
   }
 
   /**
    * Handle subscription cancelled webhook
    */
   async handleSubscriptionCancelled(subscription: any): Promise<void> {
+    const subscriptionMode = subscription.metadata?.stripe_mode || 'unknown';
+    
+    console.log(`Processing subscription cancelled webhook:`, {
+      subscriptionId: subscription.id,
+      currentMode: STRIPE_MODE,
+      subscriptionMode
+    });
+
     await this.supabase
       .from('subscriptions')
       .update({
@@ -193,7 +241,7 @@ export class StripeService {
       })
       .eq('stripe_subscription_id', subscription.id);
 
-    console.log(`Subscription cancelled: ${subscription.id}`);
+    console.log(`Subscription cancelled: ${subscription.id} in ${STRIPE_MODE} mode`);
   }
 
   /**
@@ -201,6 +249,12 @@ export class StripeService {
    */
   async handleInvoicePaymentSucceeded(invoice: any): Promise<void> {
     const subscriptionId = invoice.subscription;
+    
+    console.log(`Processing invoice payment succeeded webhook:`, {
+      invoiceId: invoice.id,
+      subscriptionId,
+      currentMode: STRIPE_MODE
+    });
     
     if (subscriptionId) {
       // Update subscription status to active
@@ -212,7 +266,7 @@ export class StripeService {
         })
         .eq('stripe_subscription_id', subscriptionId);
 
-      console.log(`Invoice payment succeeded for subscription: ${subscriptionId}`);
+      console.log(`Invoice payment succeeded for subscription: ${subscriptionId} in ${STRIPE_MODE} mode`);
     }
   }
 
@@ -221,6 +275,12 @@ export class StripeService {
    */
   async handleInvoicePaymentFailed(invoice: any): Promise<void> {
     const subscriptionId = invoice.subscription;
+    
+    console.log(`Processing invoice payment failed webhook:`, {
+      invoiceId: invoice.id,
+      subscriptionId,
+      currentMode: STRIPE_MODE
+    });
     
     if (subscriptionId) {
       await this.supabase
@@ -231,7 +291,19 @@ export class StripeService {
         })
         .eq('stripe_subscription_id', subscriptionId);
 
-      console.log(`Invoice payment failed for subscription: ${subscriptionId}`);
+      console.log(`Invoice payment failed for subscription: ${subscriptionId} in ${STRIPE_MODE} mode`);
     }
+  }
+
+  /**
+   * Get current Stripe configuration info
+   */
+  getStripeInfo() {
+    return {
+      mode: STRIPE_MODE,
+      isConfigured: isStripeConfigured(),
+      hasStripeInstance: !!stripe,
+      config: STRIPE_CONFIG
+    };
   }
 } 

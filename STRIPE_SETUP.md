@@ -1,5 +1,7 @@
 # Stripe Setup Guide for MyEdtr Phase 2
 
+This guide covers setting up Stripe for both test and live modes in your application.
+
 ## 🔧 Environment Variables Required
 
 Add these environment variables to your `.env.local` file:
@@ -114,4 +116,170 @@ Configure the Customer Portal in Stripe Dashboard:
 
 ---
 
-**Ready for testing once Stripe account is configured!** 🚀 
+**Ready for testing once Stripe account is configured!** 🚀
+
+## Environment Variables
+
+### Stripe Mode Selection
+
+Set the Stripe mode using the `STRIPE_MODE` environment variable:
+
+```bash
+# Use test mode (default)
+STRIPE_MODE=test
+
+# Use live mode
+STRIPE_MODE=live
+```
+
+### Test Mode Keys
+
+For development and testing, set up your test mode keys:
+
+```bash
+# Test mode keys
+STRIPE_TEST_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_TEST_PUBLISHABLE_KEY=pk_test_...
+STRIPE_TEST_WEBHOOK_SECRET=whsec_...
+
+# Test mode plan price IDs (optional, will fallback to generic ones)
+STRIPE_TEST_PRO_PRICE_ID=price_...
+STRIPE_TEST_FEATURED_PRICE_ID=price_...
+```
+
+### Live Mode Keys
+
+For production, set up your live mode keys:
+
+```bash
+# Live mode keys
+STRIPE_LIVE_SECRET_KEY=sk_live_...
+NEXT_PUBLIC_STRIPE_LIVE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_LIVE_WEBHOOK_SECRET=whsec_...
+
+# Live mode plan price IDs (optional, will fallback to generic ones)
+STRIPE_LIVE_PRO_PRICE_ID=price_...
+STRIPE_LIVE_FEATURED_PRICE_ID=price_...
+```
+
+### Fallback Keys (Optional)
+
+You can also set generic keys that will be used as fallbacks:
+
+```bash
+# Generic keys (used as fallback if mode-specific keys are not available)
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Generic plan price IDs
+STRIPE_PRO_PRICE_ID=price_...
+STRIPE_FEATURED_PRICE_ID=price_...
+```
+
+## How It Works
+
+1. **Mode Detection**: The system checks the `STRIPE_MODE` environment variable (defaults to "test")
+2. **Key Selection**: Based on the mode, it selects the appropriate keys:
+   - Test mode: Uses `STRIPE_TEST_*` keys
+   - Live mode: Uses `STRIPE_LIVE_*` keys
+3. **Fallback**: If mode-specific keys are not found, it falls back to generic `STRIPE_*` keys
+4. **Validation**: The system validates that all required keys are present before initializing
+
+## Configuration Status
+
+You can check your Stripe configuration status by:
+
+1. **API Endpoint**: Visit `/api/stripe/config` to see configuration details
+2. **Test Page**: Visit `/test-stripe` to see a visual configuration dashboard
+
+## Switching Between Modes
+
+### Development
+```bash
+# Test with test keys
+STRIPE_MODE=test npm run dev
+
+# Test with live keys (be careful!)
+STRIPE_MODE=live npm run dev
+```
+
+### Production
+```bash
+# Always use live mode in production
+STRIPE_MODE=live
+```
+
+## Security Best Practices
+
+1. **Never commit real keys** to version control
+2. **Use different webhook endpoints** for test and live modes
+3. **Test thoroughly** in test mode before switching to live
+4. **Monitor webhook logs** to ensure proper event handling
+5. **Use environment-specific** price IDs for different plans
+
+## Webhook Setup
+
+Set up separate webhook endpoints for test and live modes:
+
+### Test Mode Webhook
+- URL: `https://your-domain.com/api/stripe/webhooks`
+- Events: `customer.subscription.*`, `invoice.payment_*`
+- Use `STRIPE_TEST_WEBHOOK_SECRET`
+
+### Live Mode Webhook
+- URL: `https://your-domain.com/api/stripe/webhooks` (same endpoint)
+- Events: `customer.subscription.*`, `invoice.payment_*`
+- Use `STRIPE_LIVE_WEBHOOK_SECRET`
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"Stripe not initialized" error**
+   - Check that your mode-specific keys are set correctly
+   - Verify the `STRIPE_MODE` environment variable
+
+2. **"Missing price ID" error**
+   - Ensure you have price IDs set for your current mode
+   - Check both mode-specific and generic price ID variables
+
+3. **Webhook signature verification failed**
+   - Verify you're using the correct webhook secret for your mode
+   - Ensure the webhook secret matches your Stripe dashboard
+
+### Debug Information
+
+The application logs include mode information to help with debugging:
+- All Stripe operations log the current mode
+- Webhook events include mode tracking in metadata
+- Configuration status is available via the API endpoint
+
+## Environment Variable Summary
+
+### Required for Test Mode
+```bash
+STRIPE_MODE=test
+STRIPE_TEST_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_TEST_PUBLISHABLE_KEY=pk_test_...
+STRIPE_TEST_WEBHOOK_SECRET=whsec_...
+```
+
+### Required for Live Mode
+```bash
+STRIPE_MODE=live
+STRIPE_LIVE_SECRET_KEY=sk_live_...
+NEXT_PUBLIC_STRIPE_LIVE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_LIVE_WEBHOOK_SECRET=whsec_...
+```
+
+### Optional (Plan-specific Price IDs)
+```bash
+# Test mode plans
+STRIPE_TEST_PRO_PRICE_ID=price_...
+STRIPE_TEST_FEATURED_PRICE_ID=price_...
+
+# Live mode plans
+STRIPE_LIVE_PRO_PRICE_ID=price_...
+STRIPE_LIVE_FEATURED_PRICE_ID=price_...
+``` 

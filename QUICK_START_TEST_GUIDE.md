@@ -19,13 +19,13 @@ This guide provides **immediate, positive results** you can see within minutes t
 ## 🧪 **TEST 1: Subscription System (3 Minutes)**
 
 ### Step 1: Test User Registration & Tier Assignment
-1. **Go to**: `http://localhost:3001/signup`
+1. **Go to**: `https://myedtr.vercel.app/signup`
 2. **Create new account** with any email/password
 3. **Expected Result**: ✅ User automatically assigned to **Free Tier**
 4. **Visual Confirmation**: Look for tier badge in profile/dashboard
 
 ### Step 2: Test Pricing Page
-1. **Go to**: `http://localhost:3001/pricing`
+1. **Go to**: `https://myedtr.vercel.app/pricing`
 2. **Expected Results**:
    - ✅ Three tiers displayed: Free ($0), Pro ($29), Featured ($59)
    - ✅ Feature comparison matrix visible

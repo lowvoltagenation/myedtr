@@ -16,6 +16,8 @@ export default function StripeTestPage() {
   const [user, setUser] = useState<any>(null);
   const [testResults, setTestResults] = useState<Record<string, boolean>>({});
   const [testing, setTesting] = useState<Record<string, boolean>>({});
+  const [stripeConfig, setStripeConfig] = useState<any>(null);
+  const [configLoading, setConfigLoading] = useState(false);
 
   const { createCheckoutSession, createPortalSession, loading, error } = useStripe();
   const subscription = useSubscription(user?.id);
@@ -27,6 +29,25 @@ export default function StripeTestPage() {
     };
     getUser();
   }, []); // Remove supabase from dependency array since it's now stable
+
+  useEffect(() => {
+    const fetchStripeConfig = async () => {
+      setConfigLoading(true);
+      try {
+        const response = await fetch('/api/stripe/config');
+        if (response.ok) {
+          const config = await response.json();
+          setStripeConfig(config);
+        }
+      } catch (error) {
+        console.error('Failed to fetch Stripe config:', error);
+      } finally {
+        setConfigLoading(false);
+      }
+    };
+
+    fetchStripeConfig();
+  }, []);
 
   const testAPI = async (testName: string, apiCall: () => Promise<any>) => {
     setTesting(prev => ({ ...prev, [testName]: true }));
@@ -308,6 +329,122 @@ export default function StripeTestPage() {
             </div>
           </CardContent>
         </Card>
+
+        {stripeConfig && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              Stripe Configuration Status
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Mode:</span>
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                    stripeConfig.mode === 'live' 
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                  }`}>
+                    {stripeConfig.mode.toUpperCase()}
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Configured:</span>
+                  <span className={`w-3 h-3 rounded-full ${
+                    stripeConfig.isConfigured ? 'bg-green-500' : 'bg-red-500'
+                  }`}></span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Secret Key:</span>
+                  <span className={`w-3 h-3 rounded-full ${
+                    stripeConfig.hasSecretKey ? 'bg-green-500' : 'bg-red-500'
+                  }`}></span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Publishable Key:</span>
+                  <span className={`w-3 h-3 rounded-full ${
+                    stripeConfig.hasPublishableKey ? 'bg-green-500' : 'bg-red-500'
+                  }`}></span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Webhook Secret:</span>
+                  <span className={`w-3 h-3 rounded-full ${
+                    stripeConfig.hasWebhookSecret ? 'bg-green-500' : 'bg-red-500'
+                  }`}></span>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Plan Configuration:
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Pro Plan:</span>
+                  <div className="flex items-center space-x-2">
+                    <span className={`w-3 h-3 rounded-full ${
+                      stripeConfig.plans.pro.hasPriceId ? 'bg-green-500' : 'bg-red-500'
+                    }`}></span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      ${stripeConfig.plans.pro.amount / 100}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Featured Plan:</span>
+                  <div className="flex items-center space-x-2">
+                    <span className={`w-3 h-3 rounded-full ${
+                      stripeConfig.plans.featured.hasPriceId ? 'bg-green-500' : 'bg-red-500'
+                    }`}></span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      ${stripeConfig.plans.featured.amount / 100}
+                    </span>
+                  </div>
+                </div>
+                
+                {user && (
+                  <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded text-xs">
+                    <div className="font-medium text-gray-700 dark:text-gray-300 mb-1">Price IDs:</div>
+                    <div className="space-y-1 text-gray-600 dark:text-gray-400">
+                      <div>Pro: {stripeConfig.plans.pro.priceId}</div>
+                      <div>Featured: {stripeConfig.plans.featured.priceId}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {!stripeConfig.isConfigured && (
+              <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded border border-red-200 dark:border-red-800">
+                <div className="text-red-800 dark:text-red-200 text-sm">
+                  <strong>Configuration Issues:</strong>
+                  <ul className="mt-2 list-disc list-inside space-y-1">
+                    {!stripeConfig.hasSecretKey && (
+                      <li>Missing {stripeConfig.mode.toUpperCase()} secret key</li>
+                    )}
+                    {!stripeConfig.hasPublishableKey && (
+                      <li>Missing {stripeConfig.mode.toUpperCase()} publishable key</li>
+                    )}
+                    {!stripeConfig.hasWebhookSecret && (
+                      <li>Missing {stripeConfig.mode.toUpperCase()} webhook secret</li>
+                    )}
+                    {!stripeConfig.plans.pro.hasPriceId && (
+                      <li>Missing Pro plan price ID</li>
+                    )}
+                    {!stripeConfig.plans.featured.hasPriceId && (
+                      <li>Missing Featured plan price ID</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

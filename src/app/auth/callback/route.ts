@@ -12,29 +12,26 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error && data.user) {
-      // Check if user exists in our users table
-      const { data: existingUser } = await supabase
+      // Get user info from our users table (created by trigger)
+      const { data: userData } = await supabase
         .from('users')
         .select('user_type')
         .eq('id', data.user.id)
         .single()
 
-      // If user doesn't exist, create them with the specified type
-      if (!existingUser) {
-        const { error: userError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            email: data.user.email!,
-            user_type: userType as 'client' | 'editor'
-          })
+      const actualUserType = userData?.user_type || userType
 
-        if (userError) {
-          console.error('Error creating user:', userError);
-        }
-
-        // If user type is editor, create editor profile
-        if (userType === 'editor') {
+      // If user type is editor, ensure editor profile exists
+      if (actualUserType === 'editor') {
+        // Check if editor profile exists
+        const { data: editorProfile } = await supabase
+          .from('editor_profiles')
+          .select('id')
+          .eq('user_id', data.user.id)
+          .single();
+          
+        if (!editorProfile) {
+          // Create editor profile
           const { error: profileError } = await supabase
             .from('editor_profiles')
             .insert({
@@ -48,20 +45,11 @@ export async function GET(request: NextRequest) {
           if (profileError) {
             console.error('Error creating editor profile:', profileError);
           }
-        }
-      }
-
-      // Redirect based on user type  
-      if (existingUser?.user_type === 'editor' || userType === 'editor') {
-        // Check if editor profile exists
-        const { data: editorProfile } = await supabase
-          .from('editor_profiles')
-          .select('id')
-          .eq('user_id', data.user.id)
-          .single();
           
-        const redirectPath = !editorProfile ? '/dashboard/editor/create-profile' : '/dashboard/editor';
-        return NextResponse.redirect(`${origin}${redirectPath}`);
+          return NextResponse.redirect(`${origin}/dashboard/editor/create-profile`);
+        } else {
+          return NextResponse.redirect(`${origin}/dashboard/editor`);
+        }
       } else {
         return NextResponse.redirect(`${origin}/dashboard/client`);
       }

@@ -144,7 +144,11 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO public.users (id, email, user_type)
-    VALUES (NEW.id, NEW.email, 'client'); -- Default to client, can be changed later
+    VALUES (
+        NEW.id, 
+        NEW.email, 
+        COALESCE(NEW.raw_user_meta_data->>'user_type', 'client')::user_type
+    );
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

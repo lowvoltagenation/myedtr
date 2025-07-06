@@ -5,8 +5,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { User, Settings, Briefcase, MessageCircle, Clock, DollarSign, Calendar, MapPin } from "lucide-react";
+import { Suspense } from "react";
+import { EditorDashboardSkeleton } from "@/components/ui/loading-skeleton";
 
-export default async function EditorDashboard() {
+export default function EditorDashboard() {
+  return (
+    <Suspense fallback={<EditorDashboardSkeleton />}>
+      <EditorDashboardContent />
+    </Suspense>
+  );
+}
+
+async function EditorDashboardContent() {
   const supabase = await createClient();
   
   const { data: { user }, error: authError } = await supabase.auth.getUser();

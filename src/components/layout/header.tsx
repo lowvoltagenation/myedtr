@@ -38,31 +38,28 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { TierBadge } from "@/components/ui/tier-badge";
 import { useSubscription } from "@/hooks/useSubscription";
-
-interface UserProfile {
-  id: string;
-  name: string;
-  avatar_url?: string;
-  tier_level: 'free' | 'pro' | 'premium';
-  user_type: 'editor' | 'client';
-}
+import { useAuth, useAvatar, useAuthLoading } from "@/hooks/useAuth";
 
 // Create supabase client once outside component
 const supabase = createClient();
 
 export function Header() {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Auth context - single source of truth
+  const { user, profile, isAuthenticated, isEditor, isClient } = useAuth();
+  const { authLoading, profileLoading, hydrated } = useAuthLoading();
+  const { avatarUrl, fallbackLetter, hasAvatar } = useAvatar();
+  
+  // Local component state
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   
   const router = useRouter();
   const pathname = usePathname();
   const { theme, resolvedTheme } = useTheme();
 
-  // Add subscription hook
+  // Add subscription hook (keep existing integration)
   const subscription = useSubscription(user?.id);
 
   // Handle theme hydration
@@ -70,149 +67,8 @@ export function Header() {
     setMounted(true);
   }, []);
 
-  // Simple profile fetching function
-  const loadUserProfile = async (userId: string, sessionUser: any) => {
-    try {
-      // Check if user is an editor or client
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('user_type, avatar_url, name, bio, location')
-        .eq('id', userId)
-        .single();
-
-      if (userError) {
-        console.error('Error fetching user data:', userError);
-        // Fallback to basic profile if user query fails
-        setProfile({
-          id: userId,
-          name: sessionUser?.email?.split('@')[0] || 'User',
-          user_type: 'client',
-          tier_level: 'free'
-        });
-        return;
-      }
-
-      if (userData?.user_type === 'editor') {
-        // Get editor profile with explicit avatar_url selection
-        const { data: editorProfile, error: profileError } = await supabase
-          .from('editor_profiles')
-          .select('id, name, avatar_url, tier_level')
-          .eq('user_id', userId)
-          .single();
-
-        if (profileError) {
-          console.error('Error fetching editor profile:', profileError);
-        }
-
-        if (editorProfile) {
-          setProfile({
-            ...editorProfile,
-            user_type: 'editor'
-          });
-        } else {
-          // Editor profile doesn't exist yet
-          setProfile({
-            id: userId,
-            name: sessionUser?.email?.split('@')[0] || 'Editor',
-            user_type: 'editor',
-            tier_level: 'free'
-          });
-        }
-      } else {
-        // For clients, use user data from users table
-        setProfile({
-          id: userId,
-          name: userData?.name || sessionUser?.email?.split('@')[0] || 'Client',
-          user_type: userData?.user_type || 'client',
-          tier_level: 'free',
-          avatar_url: userData?.avatar_url
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      // Fallback profile
-      setProfile({
-        id: userId,
-        name: sessionUser?.email?.split('@')[0] || 'User',
-        user_type: 'client',
-        tier_level: 'free'
-      });
-    }
-  };
-
-  // Initialize auth state - runs only once
-  useEffect(() => {
-    let mounted = true;
-    
-    const initializeAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!mounted) return;
-        
-        if (session?.user) {
-          setUser(session.user);
-          await loadUserProfile(session.user.id, session.user);
-        } else {
-          setUser(null);
-          setProfile(null);
-        }
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    initializeAuth();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        
-        try {
-          if (session?.user) {
-            setUser(session.user);
-            await loadUserProfile(session.user.id, session.user);
-          } else {
-            setUser(null);
-            setProfile(null);
-          }
-        } catch (error) {
-          console.error('Error handling auth change:', error);
-        }
-      }
-    );
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []); // Empty dependency array - runs only once
-
-  // Handle profile update events
-  useEffect(() => {
-    const handleProfileUpdate = () => {
-      if (user?.id) {
-        loadUserProfile(user.id, user);
-      }
-    };
-
-    window.addEventListener('profileUpdated', handleProfileUpdate);
-
-    return () => {
-      window.removeEventListener('profileUpdated', handleProfileUpdate);
-    };
-  }, [user?.id]); // Only depend on user ID
-
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    setProfile(null);
-    setUser(null);
     router.push('/');
   };
 
@@ -310,9 +166,9 @@ export function Header() {
               {/* Theme Toggle */}
               <ThemeToggle />
               
-              {loading ? (
-                <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
-              ) : user ? (
+              {(authLoading || !hydrated) ? (
+                <div className="w-8 h-8 bg-gray-200 dark:bg-muted rounded-full animate-pulse" />
+              ) : isAuthenticated ? (
                 <>
                   {/* Messages */}
                   <Link href="/messages">
@@ -333,15 +189,19 @@ export function Header() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
-                        {profile?.avatar_url ? (
+                        {profileLoading ? (
+                          <div className="h-8 w-8 bg-gray-200 dark:bg-muted rounded-full animate-pulse" />
+                        ) : hasAvatar && !avatarError ? (
                           <img
-                            src={profile.avatar_url}
-                            alt={profile?.name || "User"}
+                            src={avatarUrl!}
+                            alt={profile?.name || user?.email || "User"}
                             className="h-8 w-8 rounded-full object-cover"
+                            onError={() => setAvatarError(true)}
+                            onLoad={() => setAvatarError(false)}
                           />
                         ) : (
                           <div className="h-8 w-8 rounded-full gradient-bg flex items-center justify-center text-white text-sm font-bold">
-                            {profile?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
+                            {fallbackLetter}
                           </div>
                         )}
                       </Button>
@@ -351,9 +211,13 @@ export function Header() {
                         <div className="flex flex-col space-y-2">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-medium leading-none">
-                              {profile?.name || "User"}
+                              {profileLoading ? (
+                                <span className="h-4 bg-gray-200 dark:bg-muted rounded w-20 block animate-pulse"></span>
+                              ) : (
+                                profile?.name || user?.email?.split('@')[0] || "User"
+                              )}
                             </p>
-                            {!subscription.loading && (
+                            {!subscription.loading && !profileLoading && (
                               <TierBadge tier={subscription.tier} size="sm" />
                             )}
                           </div>
@@ -365,7 +229,7 @@ export function Header() {
                       <DropdownMenuSeparator />
                       
                       {/* Dashboard Link */}
-                      {profile?.user_type === 'client' && (
+                      {isClient && (
                         <DropdownMenuItem asChild>
                           <Link href="/dashboard/client">
                             <LayoutDashboard className="mr-2 h-4 w-4" />
@@ -374,7 +238,7 @@ export function Header() {
                         </DropdownMenuItem>
                       )}
                       
-                      {profile?.user_type === 'editor' && (
+                      {isEditor && (
                         <DropdownMenuItem asChild>
                           <Link href="/dashboard/editor">
                             <LayoutDashboard className="mr-2 h-4 w-4" />
@@ -383,7 +247,7 @@ export function Header() {
                         </DropdownMenuItem>
                       )}
                       
-                      {profile?.user_type === 'editor' && (
+                      {isEditor && profile?.id && (
                         <DropdownMenuItem asChild>
                           <Link href={`/editor/${profile.id}`}>
                             <Eye className="mr-2 h-4 w-4" />
@@ -488,10 +352,10 @@ export function Header() {
                 How it Works
               </Link>
 
-              {user && (
+              {isAuthenticated && (
                 <>
                   <hr className="my-2" />
-                  {profile?.user_type === 'client' && (
+                  {isClient && (
                     <Link
                       href="/dashboard/client"
                       className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-foreground hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-50 dark:hover:bg-muted"
@@ -500,7 +364,7 @@ export function Header() {
                       Dashboard
                     </Link>
                   )}
-                  {profile?.user_type === 'editor' && (
+                  {isEditor && (
                     <Link
                       href="/dashboard/editor"
                       className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-foreground hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-50 dark:hover:bg-muted"

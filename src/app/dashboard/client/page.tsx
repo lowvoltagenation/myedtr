@@ -4,8 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Plus, Briefcase, Users, MessageCircle, Calendar } from "lucide-react";
+import { Suspense } from "react";
+import { DashboardSkeleton } from "@/components/ui/loading-skeleton";
 
-export default async function ClientDashboard() {
+export default function ClientDashboard() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <ClientDashboardContent />
+    </Suspense>
+  );
+}
+
+async function ClientDashboardContent() {
   const supabase = await createClient();
   
   const { data: { user }, error: authError } = await supabase.auth.getUser();

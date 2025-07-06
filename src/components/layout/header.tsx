@@ -56,6 +56,7 @@ export function Header() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   
   const router = useRouter();
   const pathname = usePathname();
@@ -63,6 +64,11 @@ export function Header() {
 
   // Add subscription hook
   const subscription = useSubscription(user?.id);
+
+  // Handle theme hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Simple profile fetching function
   const loadUserProfile = async (userId: string, sessionUser: any) => {
@@ -238,8 +244,10 @@ export function Header() {
             {/* Logo */}
             <div className="flex items-center">
               <Link href="/" className="flex items-center">
-                {/* Show dark logo in dark mode, light logo in light mode */}
-                {resolvedTheme === 'dark' ? (
+                {!mounted ? (
+                  // Show placeholder during hydration
+                  <div className="h-8 w-[120px] bg-muted rounded animate-pulse" />
+                ) : resolvedTheme === 'dark' ? (
                   <Image 
                     src="/logo-dark.svg" 
                     alt="MyEdtr" 

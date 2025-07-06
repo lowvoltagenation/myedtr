@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +59,7 @@ export function Header() {
   
   const router = useRouter();
   const pathname = usePathname();
+  const { theme, resolvedTheme } = useTheme();
 
   // Add subscription hook
   const subscription = useSubscription(user?.id);
@@ -235,10 +238,26 @@ export function Header() {
             {/* Logo */}
             <div className="flex items-center">
               <Link href="/" className="flex items-center">
-                <span className="text-2xl font-black">
-                  <span className="text-blue-500">MY</span>
-                  <span className="text-purple-600 dark:text-purple-400">EDTR</span>
-                </span>
+                {/* Show dark logo in dark mode, light logo in light mode */}
+                {resolvedTheme === 'dark' ? (
+                  <Image 
+                    src="/logo-dark.svg" 
+                    alt="MyEdtr" 
+                    width={120} 
+                    height={32}
+                    className="h-8 w-auto" 
+                    priority
+                  />
+                ) : (
+                  <Image 
+                    src="/logo-light.svg" 
+                    alt="MyEdtr" 
+                    width={120} 
+                    height={32}
+                    className="h-8 w-auto" 
+                    priority
+                  />
+                )}
               </Link>
             </div>
 

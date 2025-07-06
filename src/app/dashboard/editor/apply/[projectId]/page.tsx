@@ -32,7 +32,7 @@ interface Project {
 interface EditorProfile {
   id: string;
   display_name: string;
-  hourly_rate: number;
+  per_video_rate: number;
   specialties: string[];
   bio: string;
 }
@@ -90,7 +90,7 @@ export default function ApplyToProjectPage() {
       }
 
       setEditorProfile(profile);
-      setProposedRate(profile.hourly_rate?.toString() || "");
+      setProposedRate(profile.per_video_rate?.toString() || "");
 
       // Get project details
       const { data: projectData, error: projectError } = await supabase
@@ -482,7 +482,7 @@ export default function ApplyToProjectPage() {
                         />
                       </div>
                       <p className="text-sm text-gray-500 dark:text-muted-foreground mt-1">
-                        Your current rate: ${editorProfile?.hourly_rate}/hour
+                                                    Your current rate: ${editorProfile?.per_video_rate}/video
                       </p>
                     </div>
 
@@ -554,7 +554,7 @@ export default function ApplyToProjectPage() {
                   
                   <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-muted-foreground">
                     <DollarSign className="h-4 w-4" />
-                    <span className="font-semibold">${editorProfile?.hourly_rate}/hour</span>
+                                                <span className="font-semibold">${editorProfile?.per_video_rate}/video</span>
                   </div>
                   
                   <Link href={`/editor/${editorProfile?.id}`} target="_blank">

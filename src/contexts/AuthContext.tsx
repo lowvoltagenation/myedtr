@@ -13,7 +13,7 @@ export interface UserProfile {
   availability_status?: string;
   bio?: string;
   location?: string;
-  hourly_rate?: number;
+  per_video_rate?: number;
   specialties?: string[];
   years_experience?: number;
 }
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Get editor profile with explicit avatar_url selection
         const { data: editorProfile, error: profileError } = await supabase
           .from('editor_profiles')
-          .select('id, name, avatar_url, tier_level, availability_status, bio, location, hourly_rate, specialties, years_experience')
+          .select('id, name, avatar_url, tier_level, availability_status, bio, location, per_video_rate, specialties, years_experience')
           .eq('user_id', userId)
           .single();
 

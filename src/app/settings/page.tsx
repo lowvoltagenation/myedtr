@@ -31,7 +31,7 @@ interface UserSettings {
   project_updates: boolean;
   message_notifications: boolean;
   public_profile: boolean;
-  show_hourly_rate: boolean;
+  show_video_rate: boolean;
   show_location: boolean;
 }
 
@@ -51,7 +51,7 @@ export default function SettingsPage() {
     project_updates: true,
     message_notifications: true,
     public_profile: true,
-    show_hourly_rate: true,
+    show_video_rate: true,
     show_location: true
   });
 
@@ -310,7 +310,7 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   {[
                     { key: 'public_profile', label: 'Public Profile', description: 'Allow others to view your profile' },
-                    { key: 'show_hourly_rate', label: 'Show Hourly Rate', description: 'Display your hourly rate on your profile' },
+                    { key: 'show_video_rate', label: 'Show Video Rate', description: 'Display your per video rate on your profile' },
                     { key: 'show_location', label: 'Show Location', description: 'Display your location on your profile' }
                   ].map(({ key, label, description }) => (
                     <div key={key} className="flex items-center justify-between">

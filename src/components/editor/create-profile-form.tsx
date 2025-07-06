@@ -9,16 +9,27 @@ import { createClient } from "@/lib/supabase/client";
 import { Loader2, CheckCircle } from "lucide-react";
 
 const SPECIALTIES = [
+  "Video Editing",
   "Motion Graphics",
   "Color Grading",
-  "Storytelling",
-  "Documentary",
-  "Commercial",
-  "Music Videos",
-  "Wedding Videos",
-  "Corporate Videos",
-  "YouTube Content",
-  "Social Media Content"
+  "Sound Design/Audio",
+  "Animation",
+  "Short-Form Content (TikTok/Instagram/YouTube Shorts)",
+  "Long-Form Content (YouTube/Podcasts)"
+];
+
+const INDUSTRY_NICHES = [
+  "Real Estate",
+  "Fitness & Health",
+  "Educational",
+  "Business/Corporate",
+  "Podcasts",
+  "E-commerce/Product",
+  "Personal Brands/Influencers",
+  "Agencies",
+  "Music",
+  "Sports",
+  "Other"
 ];
 
 const EXPERIENCE_LEVELS = [
@@ -41,8 +52,9 @@ export function CreateProfileForm({ userId }: CreateProfileFormProps) {
     display_name: "",
     bio: "",
     specialties: [] as string[],
+    industry_niches: [] as string[],
     experience_level: "",
-    hourly_rate: "",
+    per_video_rate: "",
     location: "",
     portfolio_description: "",
     availability: "available" as "available" | "busy" | "unavailable"
@@ -57,6 +69,15 @@ export function CreateProfileForm({ userId }: CreateProfileFormProps) {
     }));
   };
 
+  const handleIndustryNicheToggle = (niche: string) => {
+    setFormData(prev => ({
+      ...prev,
+      industry_niches: prev.industry_niches.includes(niche)
+        ? prev.industry_niches.filter(n => n !== niche)
+        : [...prev.industry_niches, niche]
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -66,12 +87,12 @@ export function CreateProfileForm({ userId }: CreateProfileFormProps) {
       const supabase = createClient();
 
       // Validate required fields
-      if (!formData.display_name || !formData.bio || formData.specialties.length === 0 || !formData.hourly_rate) {
-        throw new Error("Please fill in all required fields");
+      if (!formData.display_name || !formData.bio || formData.specialties.length === 0 || formData.industry_niches.length === 0 || !formData.per_video_rate) {
+        throw new Error("Please fill in all required fields including at least one specialty and one industry niche");
       }
 
-      if (parseFloat(formData.hourly_rate) <= 0) {
-        throw new Error("Hourly rate must be greater than 0");
+      if (parseFloat(formData.per_video_rate) <= 0) {
+        throw new Error("Per video rate must be greater than 0");
       }
 
       // Create the profile
@@ -82,7 +103,8 @@ export function CreateProfileForm({ userId }: CreateProfileFormProps) {
           name: formData.display_name,
           bio: formData.bio,
           specialties: formData.specialties,
-          hourly_rate: parseFloat(formData.hourly_rate),
+          industry_niches: formData.industry_niches,
+          per_video_rate: parseFloat(formData.per_video_rate),
           location: formData.location || null,
           availability_status: formData.availability
         });
@@ -176,6 +198,31 @@ export function CreateProfileForm({ userId }: CreateProfileFormProps) {
         </div>
       </div>
 
+      {/* Industry Niches */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900">Industry Niches *</h3>
+        <p className="text-sm text-gray-600">Select the industries you prefer to work with (choose at least one)</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {INDUSTRY_NICHES.map((niche) => (
+            <button
+              key={niche}
+              type="button"
+              onClick={() => handleIndustryNicheToggle(niche)}
+              className={`p-3 rounded-lg border text-sm font-medium transition-all ${
+                formData.industry_niches.includes(niche)
+                  ? "bg-blue-100 border-blue-300 text-blue-700"
+                  : "bg-white border-gray-200 text-gray-700 hover:border-blue-200"
+              }`}
+            >
+              {formData.industry_niches.includes(niche) && (
+                <CheckCircle className="w-4 h-4 inline mr-2" />
+              )}
+              {niche}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Experience & Rate */}
       <div className="space-y-6">
         <h3 className="text-lg font-semibold text-gray-900">Experience & Pricing</h3>
@@ -197,22 +244,22 @@ export function CreateProfileForm({ userId }: CreateProfileFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="hourly_rate">Hourly Rate (USD) *</Label>
+            <Label htmlFor="per_video_rate">Per Video Rate (USD) *</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
               <Input
-                id="hourly_rate"
+                id="per_video_rate"
                 type="number"
-                value={formData.hourly_rate}
-                onChange={(e) => setFormData(prev => ({ ...prev, hourly_rate: e.target.value }))}
-                placeholder="50"
+                value={formData.per_video_rate}
+                onChange={(e) => setFormData(prev => ({ ...prev, per_video_rate: e.target.value }))}
+                placeholder="500"
                 min="1"
                 step="1"
                 className="pl-8"
                 required
               />
             </div>
-            <p className="text-xs text-gray-500">Set your standard hourly rate</p>
+            <p className="text-xs text-gray-500">Set your rate per video project</p>
           </div>
         </div>
       </div>

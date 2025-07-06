@@ -348,7 +348,7 @@ export function EnhancedProfileEditor() {
     company: profile?.company || '',
     location: profile?.location || '',
     availability_status: profile?.availability_status || 'available',
-    hourly_rate: profile?.hourly_rate || '',
+    per_video_rate: profile?.per_video_rate || '',
     show_rates: profile?.show_rates || false
   });
 
@@ -517,12 +517,12 @@ export function EnhancedProfileEditor() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="hourly_rate">Hourly Rate</Label>
-              <Input
-                id="hourly_rate"
-                type="number"
-                value={formData.hourly_rate}
-                onChange={(e) => handleInputChange('hourly_rate', parseFloat(e.target.value))}
+                      <Label htmlFor="per_video_rate">Per Video Rate</Label>
+        <Input
+          id="per_video_rate"
+          type="number"
+          value={formData.per_video_rate}
+          onChange={(e) => handleInputChange('per_video_rate', parseFloat(e.target.value))}
                 placeholder="75"
               />
             </div>

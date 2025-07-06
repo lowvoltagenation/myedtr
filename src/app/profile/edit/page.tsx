@@ -38,8 +38,9 @@ interface UserProfile {
   avatar_url?: string;
   website_url?: string;
   location?: string;
-  hourly_rate?: number;
+  per_video_rate?: number;
   specialties?: string[];
+  industry_niches?: string[];
   tier_level: 'free' | 'pro' | 'premium';
   user_type: 'editor' | 'client';
   availability_status?: string;
@@ -48,16 +49,27 @@ interface UserProfile {
 }
 
 const SPECIALTIES = [
+  "Video Editing",
   "Motion Graphics",
-  "Color Grading", 
-  "Storytelling",
-  "Documentary",
-  "Commercial",
-  "Music Videos",
-  "Wedding Videos",
-  "Corporate Videos",
-  "YouTube Content",
-  "Social Media Content"
+  "Color Grading",
+  "Sound Design/Audio",
+  "Animation",
+  "Short-Form Content (TikTok/Instagram/YouTube Shorts)",
+  "Long-Form Content (YouTube/Podcasts)"
+];
+
+const INDUSTRY_NICHES = [
+  "Real Estate",
+  "Fitness & Health",
+  "Educational",
+  "Business/Corporate",
+  "Podcasts",
+  "E-commerce/Product",
+  "Personal Brands/Influencers",
+  "Agencies",
+  "Music",
+  "Sports",
+  "Other"
 ];
 
 export default function EditProfilePage() {
@@ -85,8 +97,9 @@ export default function EditProfilePage() {
     bio: "",
     website_url: "",
     location: "",
-    hourly_rate: "",
+    per_video_rate: "",
     specialties: [] as string[],
+    industry_niches: [] as string[],
     availability_status: "available",
     years_experience: "",
     portfolio_urls: [] as string[]
@@ -190,8 +203,9 @@ export default function EditProfilePage() {
           bio: profileData.bio || "",
           website_url: profileData.website_url || "",
           location: profileData.location || "",
-          hourly_rate: profileData.hourly_rate?.toString() || "",
+          per_video_rate: profileData.per_video_rate?.toString() || "",
           specialties: profileData.specialties || [],
+          industry_niches: profileData.industry_niches || [],
           availability_status: profileData.availability_status || "available",
           years_experience: profileData.years_experience?.toString() || "",
           portfolio_urls: profileData.portfolio_urls || []
@@ -225,8 +239,9 @@ export default function EditProfilePage() {
           bio: profileData.bio,
           website_url: "",
           location: profileData.location || "",
-          hourly_rate: "",
+          per_video_rate: "",
           specialties: [],
+          industry_niches: [],
           availability_status: "available",
           years_experience: "",
           portfolio_urls: []
@@ -245,6 +260,15 @@ export default function EditProfilePage() {
       specialties: prev.specialties.includes(specialty)
         ? prev.specialties.filter(s => s !== specialty)
         : [...prev.specialties, specialty]
+    }));
+  };
+
+  const handleIndustryNicheToggle = (niche: string) => {
+    setFormData(prev => ({
+      ...prev,
+      industry_niches: prev.industry_niches.includes(niche)
+        ? prev.industry_niches.filter(n => n !== niche)
+        : [...prev.industry_niches, niche]
     }));
   };
 
@@ -338,8 +362,9 @@ export default function EditProfilePage() {
           bio: formData.bio,
           website_url: formData.website_url || null,
           location: formData.location || null,
-          hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
+          per_video_rate: formData.per_video_rate ? parseFloat(formData.per_video_rate) : null,
           specialties: formData.specialties,
+          industry_niches: formData.industry_niches,
           availability_status: formData.availability_status,
           years_experience: formData.years_experience ? parseInt(formData.years_experience) : null,
           portfolio_urls: formData.portfolio_urls.filter(url => url.trim()),
@@ -607,6 +632,35 @@ export default function EditProfilePage() {
                   </CardContent>
                 </Card>
 
+                {/* Industry Niches */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="dark:text-white">Industry Niches</CardTitle>
+                    <CardDescription className="dark:text-muted-foreground">Select the industries you prefer to work with</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {INDUSTRY_NICHES.map((niche) => (
+                        <button
+                          key={niche}
+                          type="button"
+                          onClick={() => handleIndustryNicheToggle(niche)}
+                          className={`p-2 rounded-md border text-xs font-medium transition-all text-center ${
+                            formData.industry_niches.includes(niche)
+                              ? "bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300"
+                              : "bg-white dark:bg-card border-gray-200 dark:border-border text-gray-700 dark:text-foreground hover:border-blue-200 dark:hover:border-blue-500"
+                          }`}
+                        >
+                          {formData.industry_niches.includes(niche) && (
+                            <CheckCircle className="w-3 h-3 inline mr-1" />
+                          )}
+                          {niche}
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Pricing & Availability */}
                 <Card>
                   <CardHeader>
@@ -615,15 +669,15 @@ export default function EditProfilePage() {
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="hourly_rate" className="dark:text-foreground">Hourly Rate (USD)</Label>
+                      <Label htmlFor="per_video_rate" className="dark:text-foreground">Per Video Rate (USD)</Label>
                       <div className="relative max-w-xs">
                         <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-muted-foreground w-4 h-4" />
                         <Input
-                          id="hourly_rate"
+                          id="per_video_rate"
                           type="number"
-                          value={formData.hourly_rate}
-                          onChange={(e) => setFormData(prev => ({ ...prev, hourly_rate: e.target.value }))}
-                          placeholder="50"
+                          value={formData.per_video_rate}
+                          onChange={(e) => setFormData(prev => ({ ...prev, per_video_rate: e.target.value }))}
+                          placeholder="500"
                           min="1"
                           className="pl-10"
                         />

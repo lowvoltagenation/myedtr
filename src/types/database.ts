@@ -254,8 +254,9 @@ export type Database = {
           avatar_url: string | null
           website_url: string | null
           location: string | null
-          hourly_rate: number | null
+          per_video_rate: number | null
           specialties: string[]
+          industry_niches: string[]
           tier_level: 'free' | 'pro' | 'premium'
           availability_status: string
           years_experience: number | null
@@ -271,8 +272,9 @@ export type Database = {
           avatar_url?: string | null
           website_url?: string | null
           location?: string | null
-          hourly_rate?: number | null
+          per_video_rate?: number | null
           specialties?: string[]
+          industry_niches?: string[]
           tier_level?: 'free' | 'pro' | 'premium'
           availability_status?: string
           years_experience?: number | null
@@ -288,8 +290,9 @@ export type Database = {
           avatar_url?: string | null
           website_url?: string | null
           location?: string | null
-          hourly_rate?: number | null
+          per_video_rate?: number | null
           specialties?: string[]
+          industry_niches?: string[]
           tier_level?: 'free' | 'pro' | 'premium'
           availability_status?: string
           years_experience?: number | null
@@ -409,6 +412,101 @@ export type Database = {
           created_at?: string
         }
       }
+      enhanced_profile_data: {
+        Row: {
+          id: string
+          user_id: string
+          bio_headline: string | null
+          bio_description: string | null
+          bio_experience: string | null
+          bio_achievements: string | null
+          skills_primary: string[] | null
+          skills_secondary: string[] | null
+          expertise_level: string | null
+          years_experience: number | null
+          intro_video_url: string | null
+          intro_video_title: string | null
+          intro_video_description: string | null
+          case_studies: Json | null
+          social_links: Json | null
+          contact_preferences: Json | null
+          current_position: string | null
+          company: string | null
+          location: string | null
+          availability_status: string | null
+          per_video_rate: number | null
+          currency: string | null
+          show_experience: boolean | null
+          show_skills: boolean | null
+          show_achievements: boolean | null
+          show_contact_info: boolean | null
+          show_rates: boolean | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          bio_headline?: string | null
+          bio_description?: string | null
+          bio_experience?: string | null
+          bio_achievements?: string | null
+          skills_primary?: string[] | null
+          skills_secondary?: string[] | null
+          expertise_level?: string | null
+          years_experience?: number | null
+          intro_video_url?: string | null
+          intro_video_title?: string | null
+          intro_video_description?: string | null
+          case_studies?: Json | null
+          social_links?: Json | null
+          contact_preferences?: Json | null
+          current_position?: string | null
+          company?: string | null
+          location?: string | null
+          availability_status?: string | null
+          per_video_rate?: number | null
+          currency?: string | null
+          show_experience?: boolean | null
+          show_skills?: boolean | null
+          show_achievements?: boolean | null
+          show_contact_info?: boolean | null
+          show_rates?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          bio_headline?: string | null
+          bio_description?: string | null
+          bio_experience?: string | null
+          bio_achievements?: string | null
+          skills_primary?: string[] | null
+          skills_secondary?: string[] | null
+          expertise_level?: string | null
+          years_experience?: number | null
+          intro_video_url?: string | null
+          intro_video_title?: string | null
+          intro_video_description?: string | null
+          case_studies?: Json | null
+          social_links?: Json | null
+          contact_preferences?: Json | null
+          current_position?: string | null
+          company?: string | null
+          location?: string | null
+          availability_status?: string | null
+          per_video_rate?: number | null
+          currency?: string | null
+          show_experience?: boolean | null
+          show_skills?: boolean | null
+          show_achievements?: boolean | null
+          show_contact_info?: boolean | null
+          show_rates?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -436,6 +534,7 @@ export type UpdateTables<T extends keyof Database['public']['Tables']> = Databas
 // Specific types
 export type User = Tables<'users'>
 export type EditorProfile = Tables<'editor_profiles'>
+export type EnhancedProfileData = Tables<'enhanced_profile_data'>
 export type Project = Tables<'projects'>
 export type Message = Tables<'messages'>
 export type Review = Tables<'reviews'> 

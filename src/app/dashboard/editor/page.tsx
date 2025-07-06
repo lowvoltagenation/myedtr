@@ -190,7 +190,7 @@ async function EditorDashboardContent() {
                 <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <DollarSign className="h-4 w-4" />
-                    <span className="font-semibold">${profile.hourly_rate}/hr</span>
+                    <span className="font-semibold">${profile.per_video_rate}/video</span>
                   </div>
                   {profile.location && (
                     <div className="flex items-center gap-1">

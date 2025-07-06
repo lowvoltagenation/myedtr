@@ -101,7 +101,7 @@ export default async function EditorProfilePage({ params }: EditorProfilePagePro
                           )}
                           <div className="flex items-center">
                             <DollarSign className="w-4 h-4 mr-1" />
-                            ${profile.hourly_rate}/hour
+                            ${profile.per_video_rate}/video
                           </div>
                         </div>
                         

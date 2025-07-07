@@ -13,7 +13,6 @@ interface Editor {
   experience_level: string | null;
   per_video_rate: number;
   location: string | null;
-  availability_status: string;
   avatar_url?: string;
   created_at: string;
 }
@@ -156,11 +155,7 @@ export function BrowseEditorsClient({ initialEditors, availableSpecialties, avai
                           {editor.name.charAt(0)}
                         </div>
                       )}
-                      {/* Availability dot */}
-                      <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
-                        editor.availability_status === 'available' ? 'bg-green-400' : 
-                        editor.availability_status === 'busy' ? 'bg-yellow-400' : 'bg-red-400'
-                      }`}></div>
+
                     </div>
                     
                     {/* Content */}

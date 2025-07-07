@@ -149,9 +149,7 @@ async function EditorDashboardContent() {
                 <Settings className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Profile Status</p>
-                  <Badge variant={profile.availability_status === 'available' ? 'default' : 'secondary'}>
-                    {profile.availability_status}
-                  </Badge>
+                  
                 </div>
               </div>
             </CardContent>

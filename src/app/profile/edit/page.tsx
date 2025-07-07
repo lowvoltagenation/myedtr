@@ -43,7 +43,7 @@ interface UserProfile {
   industry_niches?: string[];
   tier_level: 'free' | 'pro' | 'premium';
   user_type: 'editor' | 'client';
-  availability_status?: string;
+
   years_experience?: number;
   portfolio_urls?: string[];
 }
@@ -100,7 +100,6 @@ export default function EditProfilePage() {
     per_video_rate: "",
     specialties: [] as string[],
     industry_niches: [] as string[],
-    availability_status: "available",
     years_experience: "",
     portfolio_urls: [] as string[]
   });
@@ -206,7 +205,6 @@ export default function EditProfilePage() {
           per_video_rate: profileData.per_video_rate?.toString() || "",
           specialties: profileData.specialties || [],
           industry_niches: profileData.industry_niches || [],
-          availability_status: profileData.availability_status || "available",
           years_experience: profileData.years_experience?.toString() || "",
           portfolio_urls: profileData.portfolio_urls || []
         });
@@ -242,7 +240,6 @@ export default function EditProfilePage() {
           per_video_rate: "",
           specialties: [],
           industry_niches: [],
-          availability_status: "available",
           years_experience: "",
           portfolio_urls: []
         });
@@ -365,7 +362,6 @@ export default function EditProfilePage() {
           per_video_rate: formData.per_video_rate ? parseFloat(formData.per_video_rate) : null,
           specialties: formData.specialties,
           industry_niches: formData.industry_niches,
-          availability_status: formData.availability_status,
           years_experience: formData.years_experience ? parseInt(formData.years_experience) : null,
           portfolio_urls: formData.portfolio_urls.filter(url => url.trim()),
           avatar_url: profile.avatar_url,
@@ -661,11 +657,11 @@ export default function EditProfilePage() {
                   </CardContent>
                 </Card>
 
-                {/* Pricing & Availability */}
+                {/* Pricing */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="dark:text-white">Pricing & Availability</CardTitle>
-                    <CardDescription className="dark:text-muted-foreground">Set your rates and availability status</CardDescription>
+                    <CardTitle className="dark:text-white">Pricing</CardTitle>
+                    <CardDescription className="dark:text-muted-foreground">Set your video editing rates</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
@@ -681,34 +677,6 @@ export default function EditProfilePage() {
                           min="1"
                           className="pl-10"
                         />
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <Label className="dark:text-foreground">Availability Status</Label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { value: "available", label: "Available", color: "green" },
-                          { value: "busy", label: "Busy", color: "yellow" },
-                          { value: "unavailable", label: "Unavailable", color: "red" }
-                        ].map(({ value, label, color }) => (
-                          <button
-                            key={value}
-                            type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, availability_status: value }))}
-                            className={`px-3 py-2 rounded-md border text-xs font-medium transition-all ${
-                              formData.availability_status === value
-                                ? color === "green" 
-                                  ? "bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-600 text-green-700 dark:text-green-300"
-                                  : color === "yellow"
-                                  ? "bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-600 text-yellow-700 dark:text-yellow-300"
-                                  : "bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-600 text-red-700 dark:text-red-300"
-                                : "bg-white dark:bg-card border-gray-200 dark:border-border text-gray-700 dark:text-foreground hover:border-gray-300 dark:hover:border-gray-500"
-                            }`}
-                          >
-                            {label}
-                          </button>
-                        ))}
                       </div>
                     </div>
                   </CardContent>

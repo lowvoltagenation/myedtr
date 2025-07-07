@@ -57,7 +57,7 @@ export function CreateProfileForm({ userId }: CreateProfileFormProps) {
     per_video_rate: "",
     location: "",
     portfolio_description: "",
-    availability: "available" as "available" | "busy" | "unavailable"
+
   });
 
   const handleSpecialtyToggle = (specialty: string) => {
@@ -105,8 +105,7 @@ export function CreateProfileForm({ userId }: CreateProfileFormProps) {
           specialties: formData.specialties,
           industry_niches: formData.industry_niches,
           per_video_rate: parseFloat(formData.per_video_rate),
-          location: formData.location || null,
-          availability_status: formData.availability
+          location: formData.location || null
         });
 
       if (insertError) {
@@ -280,37 +279,7 @@ export function CreateProfileForm({ userId }: CreateProfileFormProps) {
         </div>
       </div>
 
-      {/* Availability */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Availability</h3>
-        <div className="space-y-2">
-          <Label>Current Status</Label>
-          <div className="flex gap-3">
-            {[
-              { value: "available", label: "Available", color: "green" },
-              { value: "busy", label: "Busy", color: "yellow" },
-              { value: "unavailable", label: "Unavailable", color: "red" }
-            ].map(({ value, label, color }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, availability: value as any }))}
-                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
-                  formData.availability === value
-                    ? color === "green" 
-                      ? "bg-green-100 border-green-300 text-green-700"
-                      : color === "yellow"
-                      ? "bg-yellow-100 border-yellow-300 text-yellow-700"
-                      : "bg-red-100 border-red-300 text-red-700"
-                    : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+
 
       {/* Submit */}
       <div className="pt-6 border-t">

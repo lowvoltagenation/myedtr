@@ -258,7 +258,6 @@ export type Database = {
           specialties: string[]
           industry_niches: string[]
           tier_level: 'free' | 'pro' | 'premium'
-          availability_status: string
           years_experience: number | null
           portfolio_urls: string[]
           created_at: string
@@ -276,7 +275,6 @@ export type Database = {
           specialties?: string[]
           industry_niches?: string[]
           tier_level?: 'free' | 'pro' | 'premium'
-          availability_status?: string
           years_experience?: number | null
           portfolio_urls?: string[]
           created_at?: string
@@ -294,7 +292,6 @@ export type Database = {
           specialties?: string[]
           industry_niches?: string[]
           tier_level?: 'free' | 'pro' | 'premium'
-          availability_status?: string
           years_experience?: number | null
           portfolio_urls?: string[]
           created_at?: string
@@ -433,7 +430,6 @@ export type Database = {
           current_position: string | null
           company: string | null
           location: string | null
-          availability_status: string | null
           per_video_rate: number | null
           currency: string | null
           show_experience: boolean | null
@@ -464,7 +460,6 @@ export type Database = {
           current_position?: string | null
           company?: string | null
           location?: string | null
-          availability_status?: string | null
           per_video_rate?: number | null
           currency?: string | null
           show_experience?: boolean | null
@@ -495,7 +490,6 @@ export type Database = {
           current_position?: string | null
           company?: string | null
           location?: string | null
-          availability_status?: string | null
           per_video_rate?: number | null
           currency?: string | null
           show_experience?: boolean | null
@@ -517,7 +511,6 @@ export type Database = {
     Enums: {
       user_type: 'editor' | 'client'
       tier_level: 'free' | 'pro' | 'premium'
-      availability_status: 'available' | 'busy' | 'unavailable'
       project_status: 'open' | 'assigned' | 'in_progress' | 'completed' | 'cancelled'
     }
     CompositeTypes: {

@@ -10,11 +10,11 @@ export interface UserProfile {
   avatar_url?: string;
   tier_level: 'free' | 'pro' | 'premium';
   user_type: 'editor' | 'client';
-
   bio?: string;
   location?: string;
   per_video_rate?: number;
   specialties?: string[];
+  industry_niches?: string[];
   years_experience?: number;
 }
 
@@ -80,14 +80,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         .eq('id', userId)
         .single();
 
+
       if (userError) {
-        console.error('Error fetching user data:', userError);
+        console.error('❌ Error fetching user data:', userError);
         // Fallback to basic profile if user query fails
         setProfile({
           id: userId,
           name: sessionUser?.email?.split('@')[0] || 'User',
-          user_type: 'client',
-          tier_level: 'free'
+          user_type: 'client' as 'editor' | 'client',
+          tier_level: 'free' as const
         });
         return;
       }
@@ -96,50 +97,55 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Get editor profile with explicit avatar_url selection
         const { data: editorProfile, error: profileError } = await supabase
           .from('editor_profiles')
-          .select('id, name, avatar_url, tier_level, bio, location, per_video_rate, specialties, years_experience')
+          .select('id, name, avatar_url, tier_level, bio, location, per_video_rate, specialties, industry_niches, years_experience')
           .eq('user_id', userId)
           .single();
 
+
         if (profileError) {
-          console.error('Error fetching editor profile:', profileError);
+          console.error('❌ Error fetching editor profile:', profileError);
         }
 
         if (editorProfile) {
-          setProfile({
+          const profileData = {
             ...editorProfile,
-            user_type: 'editor'
-          });
+            user_type: 'editor' as const
+          };
+          setProfile(profileData);
         } else {
           // Editor profile doesn't exist yet
-          setProfile({
+          const fallbackProfile = {
             id: userId,
             name: sessionUser?.email?.split('@')[0] || 'Editor',
-            user_type: 'editor',
-            tier_level: 'free'
-          });
+            user_type: 'editor' as 'editor' | 'client',
+            tier_level: 'free' as const
+          };
+          setProfile(fallbackProfile);
         }
       } else {
         // For clients, use user data from users table
-        setProfile({
+        const clientProfile = {
           id: userId,
           name: userData?.name || sessionUser?.email?.split('@')[0] || 'Client',
-          user_type: userData?.user_type || 'client',
-          tier_level: 'free',
+          user_type: (userData?.user_type || 'client') as 'editor' | 'client',
+          tier_level: 'free' as const,
           avatar_url: userData?.avatar_url,
           bio: userData?.bio,
           location: userData?.location
-        });
+        };
+        setProfile(clientProfile);
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('❌ Error fetching profile:', error);
       setError('Failed to load profile');
       // Fallback profile
-      setProfile({
+      const fallbackProfile = {
         id: userId,
         name: sessionUser?.email?.split('@')[0] || 'User',
-        user_type: 'client',
-        tier_level: 'free'
-      });
+        user_type: 'client' as 'editor' | 'client',
+        tier_level: 'free' as const
+      };
+      setProfile(fallbackProfile);
     } finally {
       profileLoadingRef.current = false;
       setProfileLoading(false);
@@ -167,7 +173,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setAuthLoading(false);
         setHydrated(true);
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('❌ Error initializing auth:', error);
         if (mounted) {
           setAuthLoading(false);
           setHydrated(true);

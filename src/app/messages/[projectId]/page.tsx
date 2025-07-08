@@ -477,14 +477,7 @@ export default function MessagesPage() {
     }
   };
 
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case 'rush': return 'destructive';
-      case 'urgent': return 'default';
-      case 'standard': return 'secondary';
-      default: return 'outline';
-    }
-  };
+
 
   if (loading) {
     return (
@@ -535,18 +528,7 @@ export default function MessagesPage() {
               </p>
             </div>
             
-            <div className="flex gap-2">
-              {project.urgency && (
-                <Badge variant={getUrgencyColor(project.urgency)}>
-                  {project.urgency}
-                </Badge>
-              )}
-              {project.project_type && (
-                <Badge variant="outline">
-                  {project.project_type}
-                </Badge>
-              )}
-            </div>
+
           </div>
         </div>
 

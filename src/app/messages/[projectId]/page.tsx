@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
 import { ArrowLeft, Send, User, Calendar, DollarSign, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Message {
   id: string;
@@ -19,6 +21,7 @@ interface Message {
   created_at: string;
   sender_name?: string;
   sender_type?: string;
+  sender_avatar_url?: string;
 }
 
 interface Project {
@@ -48,20 +51,33 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const [otherParticipant, setOtherParticipant] = useState<string>("");
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
+  const [lastMessageCheck, setLastMessageCheck] = useState<Date>(new Date());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const params = useParams();
   const projectId = params.projectId as string;
+  const { user, profile, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    fetchData();
-    
-    // Set up real-time subscription for new messages
+    if (user && profile) {
+      fetchData();
+    }
+  }, [user, profile, projectId]);
+
+  // Separate effect for real-time subscription to avoid conflicts
+  useEffect(() => {
+    if (!user || !profile || !projectId) return;
+
+    console.log('🔄 Setting up real-time subscription for project:', projectId);
     const supabase = createClient();
+    
+    // Create a unique channel name to avoid conflicts
+    const channelName = `messages-${projectId}-${user.id}-${Date.now()}`;
+    
     const channel = supabase
-      .channel('messages')
+      .channel(channelName)
       .on('postgres_changes', 
         { 
           event: 'INSERT', 
@@ -69,45 +85,205 @@ export default function MessagesPage() {
           table: 'messages',
           filter: `project_id=eq.${projectId}`
         }, 
-        (payload) => {
-          const newMessage = payload.new as Message;
-          setMessages(prev => [...prev, newMessage]);
+        async (payload) => {
+          console.log('🔴 Real-time message received:', payload);
+          const newMessage = payload.new as any;
+          
+          // Skip if this message is from the current user (already added optimistically)
+          if (newMessage.sender_id === user.id) {
+            console.log('🔄 Skipping own message from real-time update');
+            return;
+          }
+          
+          try {
+            // Fetch sender details for the new message
+            const { data: senderData, error: senderError } = await supabase
+              .from('users')
+              .select(`
+                id,
+                user_type,
+                name,
+                avatar_url,
+                editor_profiles (name, avatar_url)
+              `)
+              .eq('id', newMessage.sender_id)
+              .single();
+            
+            if (senderError) {
+              console.warn('Error fetching sender data for real-time message:', senderError);
+            }
+            
+            // Format the new message with sender details
+            let senderName = 'User';
+            let senderAvatar = null;
+            
+            if (senderData?.user_type === 'editor') {
+              senderName = senderData?.editor_profiles?.name || 'Editor';
+              senderAvatar = senderData?.editor_profiles?.avatar_url || senderData?.avatar_url;
+            } else if (senderData?.user_type === 'client') {
+              senderName = senderData?.name || 'Client';
+              senderAvatar = senderData?.avatar_url;
+            }
+            
+            const formattedMessage: Message = {
+              ...newMessage,
+              sender_name: senderName,
+              sender_type: senderData?.user_type,
+              sender_avatar_url: senderAvatar
+            };
+            
+            setMessages(prev => {
+              // Check if message already exists to avoid duplicates
+              const exists = prev.some(msg => msg.id === formattedMessage.id);
+              if (exists) {
+                console.log('🔄 Message already exists, skipping duplicate');
+                return prev;
+              }
+              console.log('✅ Adding new real-time message to state');
+              return [...prev, formattedMessage];
+            });
+          } catch (error) {
+            console.error('Error processing real-time message:', error);
+          }
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        console.log('🔄 Subscription status:', status);
+        if (err) {
+          console.error('🔄 Subscription error:', err);
+        }
+        
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Real-time subscription active');
+          setRealtimeConnected(true);
+        } else if (status === 'TIMED_OUT') {
+          console.warn('⚠️ Real-time subscription timed out - will use polling instead');
+          setRealtimeConnected(false);
+          // Don't retry - just use polling fallback
+        } else if (status === 'CLOSED') {
+          console.warn('⚠️ Real-time subscription closed');
+          setRealtimeConnected(false);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Real-time subscription channel error');
+          setRealtimeConnected(false);
+        }
+      });
+
+    console.log('🔄 Channel setup complete:', channelName);
 
     return () => {
+      console.log('🔄 Cleaning up subscription:', channelName);
       supabase.removeChannel(channel);
     };
-  }, [projectId]);
+  }, [projectId, user, profile]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
+  // Periodic refresh as fallback when real-time isn't working
+  useEffect(() => {
+    if (!realtimeConnected && user && profile) {
+      console.log('🔄 Setting up periodic refresh (real-time not connected)');
+      const interval = setInterval(refreshMessages, 3000); // Check every 3 seconds
+      
+      return () => {
+        console.log('🔄 Cleaning up periodic refresh');
+        clearInterval(interval);
+      };
+    }
+  }, [realtimeConnected, user, profile, projectId]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const refreshMessages = async () => {
+    if (!user || !profile) return;
+    
+    console.log('🔄 Manually refreshing messages...');
+    const supabase = createClient();
+    
+    try {
+      // Get messages created after our last check
+      const { data: newMessages, error } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          sender:users!messages_sender_id_fkey (
+            id,
+            user_type,
+            name,
+            avatar_url,
+            editor_profiles (name, avatar_url)
+          )
+        `)
+        .eq('project_id', projectId)
+        .gt('created_at', lastMessageCheck.toISOString())
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error refreshing messages:', error);
+        return;
+      }
+
+      if (newMessages && newMessages.length > 0) {
+        console.log(`📨 Found ${newMessages.length} new messages`);
+        
+        const formattedMessages = newMessages.map(msg => {
+          let senderName = 'User';
+          let senderAvatar = null;
+          
+          if (msg.sender?.user_type === 'editor') {
+            senderName = msg.sender?.editor_profiles?.name || 'Editor';
+            senderAvatar = msg.sender?.editor_profiles?.avatar_url || msg.sender?.avatar_url;
+          } else if (msg.sender?.user_type === 'client') {
+            senderName = msg.sender?.name || 'Client';
+            senderAvatar = msg.sender?.avatar_url;
+          }
+          
+          return {
+            ...msg,
+            sender_name: senderName,
+            sender_type: msg.sender?.user_type,
+            sender_avatar_url: senderAvatar
+          };
+        });
+
+        setMessages(prev => {
+          // Filter out any duplicates and add new messages
+          const existingIds = new Set(prev.map(msg => msg.id));
+          const newUniqueMessages = formattedMessages.filter(msg => !existingIds.has(msg.id));
+          if (newUniqueMessages.length > 0) {
+            console.log(`✅ Adding ${newUniqueMessages.length} new messages to chat`);
+            
+            // Update the last message check time to the latest new message
+            const latestNewMessage = newUniqueMessages[newUniqueMessages.length - 1];
+            setLastMessageCheck(new Date(latestNewMessage.created_at));
+            
+            return [...prev, ...newUniqueMessages];
+          }
+          return prev;
+        });
+      } else {
+        console.log('📨 No new messages found');
+      }
+      
+      // Only update lastMessageCheck if we didn't find new messages
+      // (if we found new messages, it's already updated above)
+    } catch (error) {
+      console.error('Error in manual refresh:', error);
+    }
   };
 
   const fetchData = async () => {
     const supabase = createClient();
     
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user || !profile) {
         router.push('/login');
         return;
       }
-
-      // Get user details
-      const { data: userData } = await supabase
-        .from('users')
-        .select('user_type')
-        .eq('id', user.id)
-        .single();
-
-      setCurrentUser({ ...user, user_type: userData?.user_type });
 
       // Get project details
       const { data: projectData } = await supabase
@@ -145,44 +321,84 @@ export default function MessagesPage() {
       }
 
       // Determine other participant name
-      if (userData?.user_type === 'client') {
+      if (profile?.user_type === 'client') {
         setOtherParticipant(applicationData?.editor?.editor_profiles?.name || 'Editor');
       } else {
-        // Get client name
-        const { data: clientData } = await supabase
+        // Get client name from users table
+        const { data: clientData, error: clientError } = await supabase
           .from('users')
-          .select(`
-            id,
-            editor_profiles (name)
-          `)
+          .select('name')
           .eq('id', projectData.client_id)
           .single();
+          
+        if (clientError) {
+          console.warn('Failed to fetch client name:', clientError);
+        }
         
-        setOtherParticipant('Client');
+        setOtherParticipant(clientData?.name || 'Client');
       }
 
-      // Get messages with sender details
-      const { data: messagesData } = await supabase
+      // Get messages with sender details including both client and editor info
+      const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select(`
           *,
           sender:users!messages_sender_id_fkey (
             id,
             user_type,
-            editor_profiles (name)
+            name,
+            avatar_url,
+            editor_profiles (name, avatar_url)
           )
         `)
         .eq('project_id', projectId)
         .order('created_at', { ascending: true });
+        
+      if (messagesError) {
+        console.error('Error fetching messages:', messagesError);
+      }
 
       if (messagesData) {
-        const formattedMessages = messagesData.map(msg => ({
-          ...msg,
-          sender_name: msg.sender?.editor_profiles?.name || 
-                      (msg.sender?.user_type === 'client' ? 'Client' : 'User'),
-          sender_type: msg.sender?.user_type
-        }));
+        const formattedMessages = messagesData.map(msg => {
+          // Determine name based on user type
+          let senderName = 'User';
+          let senderAvatar = null;
+          
+          console.log('🔍 Formatting message:', {
+            msgId: msg.id,
+            senderData: msg.sender,
+            userType: msg.sender?.user_type
+          });
+          
+          if (msg.sender?.user_type === 'editor') {
+            senderName = msg.sender?.editor_profiles?.name || 'Editor';
+            senderAvatar = msg.sender?.editor_profiles?.avatar_url || msg.sender?.avatar_url;
+          } else if (msg.sender?.user_type === 'client') {
+            senderName = msg.sender?.name || 'Client';
+            senderAvatar = msg.sender?.avatar_url;
+          }
+          
+          console.log('🔍 Final message data:', {
+            msgId: msg.id,
+            senderName,
+            senderAvatar,
+            senderType: msg.sender?.user_type
+          });
+          
+          return {
+            ...msg,
+            sender_name: senderName,
+            sender_type: msg.sender?.user_type,
+            sender_avatar_url: senderAvatar
+          };
+        });
         setMessages(formattedMessages);
+        
+        // Update the last message check time to the latest message
+        if (formattedMessages.length > 0) {
+          const latestMessage = formattedMessages[formattedMessages.length - 1];
+          setLastMessageCheck(new Date(latestMessage.created_at));
+        }
       }
 
     } catch (error) {
@@ -193,25 +409,62 @@ export default function MessagesPage() {
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || sending || !currentUser) return;
+    if (!newMessage.trim() || sending || !user) return;
 
     setSending(true);
     const supabase = createClient();
+    const messageContent = newMessage.trim();
+
+    // Create optimistic message
+    const optimisticMessage: Message = {
+      id: `temp-${Date.now()}`,
+      project_id: projectId,
+      sender_id: user.id,
+      content: messageContent,
+      created_at: new Date().toISOString(),
+      sender_name: 'You',
+      sender_type: profile?.user_type,
+      sender_avatar_url: profile?.avatar_url
+    };
+
+    // Add optimistic message immediately
+    setMessages(prev => [...prev, optimisticMessage]);
+    setNewMessage("");
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('messages')
         .insert({
           project_id: projectId,
-          sender_id: currentUser.id,
-          content: newMessage.trim()
-        });
+          sender_id: user.id,
+          content: messageContent
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      setNewMessage("");
+      // Replace optimistic message with real message
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === optimisticMessage.id 
+            ? { ...optimisticMessage, id: data.id, created_at: data.created_at }
+            : msg
+        )
+      );
+
+      console.log('✅ Message sent successfully');
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+      
+      // Restore the message text
+      setNewMessage(messageContent);
+      
+      // Show error to user (you could add a toast notification here)
+      alert('Failed to send message. Please try again.');
     } finally {
       setSending(false);
     }
@@ -265,7 +518,7 @@ export default function MessagesPage() {
         {/* Header */}
         <div className="mb-6">
           <Link 
-            href={currentUser?.user_type === 'client' ? '/dashboard/client' : '/dashboard/editor'} 
+            href={profile?.user_type === 'client' ? '/dashboard/client' : '/dashboard/editor'} 
             className="inline-flex items-center text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -308,39 +561,66 @@ export default function MessagesPage() {
               {/* Messages List */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.length > 0 ? (
-                  messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${
-                        message.sender_id === currentUser?.id ? 'justify-end' : 'justify-start'
-                      }`}
-                    >
+                  messages.map((message) => {
+                    const isOwnMessage = message.sender_id === user?.id;
+                    const senderName = isOwnMessage ? 'You' : message.sender_name;
+                    const fallbackLetter = (message.sender_name || 'U').charAt(0).toUpperCase();
+                    
+                    return (
                       <div
-                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                          message.sender_id === currentUser?.id
-                            ? 'bg-purple-600 text-white dark:bg-purple-500'
-                            : 'bg-gray-100 text-gray-900 dark:bg-muted dark:text-foreground'
+                        key={message.id}
+                        className={`flex items-start gap-3 ${
+                          isOwnMessage ? 'justify-end' : 'justify-start'
                         }`}
                       >
-                        <div className="text-sm mb-1">
-                          <span className="font-medium">
-                            {message.sender_id === currentUser?.id ? 'You' : message.sender_name}
-                          </span>
-                          <span className={`ml-2 opacity-75 text-xs ${
-                            message.sender_id === currentUser?.id 
-                              ? 'text-purple-100' 
-                              : 'text-gray-500 dark:text-muted-foreground'
-                          }`}>
-                            {new Date(message.created_at).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </span>
+                        {/* Avatar - show on left for others, right for own messages */}
+                        {!isOwnMessage && (
+                          <Avatar className="w-8 h-8 shrink-0">
+                            <AvatarImage src={message.sender_avatar_url || undefined} />
+                            <AvatarFallback className="text-xs">
+                              {fallbackLetter}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        
+                        {/* Message Bubble */}
+                        <div
+                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                            isOwnMessage
+                              ? 'bg-purple-600 text-white dark:bg-purple-500'
+                              : 'bg-gray-100 text-gray-900 dark:bg-muted dark:text-foreground'
+                          }`}
+                        >
+                          <div className="text-sm mb-1">
+                            <span className="font-medium">
+                              {senderName}
+                            </span>
+                            <span className={`ml-2 opacity-75 text-xs ${
+                              isOwnMessage 
+                                ? 'text-purple-100' 
+                                : 'text-gray-500 dark:text-muted-foreground'
+                            }`}>
+                              {new Date(message.created_at).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                          <p className="whitespace-pre-wrap">{message.content}</p>
                         </div>
-                        <p className="whitespace-pre-wrap">{message.content}</p>
+                        
+                        {/* Avatar for own messages on the right */}
+                        {isOwnMessage && (
+                          <Avatar className="w-8 h-8 shrink-0">
+                            <AvatarImage src={message.sender_avatar_url || undefined} />
+                            <AvatarFallback className="text-xs">
+                              {fallbackLetter}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="text-center text-gray-500 dark:text-muted-foreground py-8">
                     <User className="h-12 w-12 mx-auto mb-4 opacity-50" />

@@ -306,7 +306,7 @@ export default function MessagesPage() {
           *,
           editor:users!project_applications_editor_id_fkey (
             id,
-            editor_profiles (name)
+            editor_profiles (name, avatar_url)
           )
         `)
         .eq('project_id', projectId)
@@ -314,9 +314,13 @@ export default function MessagesPage() {
         .single();
 
       if (applicationData) {
+        // Get the editor name from the profile data
+        const editorProfile = applicationData.editor?.editor_profiles?.[0];
+        const editorName = editorProfile?.name || applicationData.editor?.name || 'Unknown Editor';
+        
         setApplication({
           ...applicationData,
-          editor_name: applicationData.editor?.editor_profiles?.[0]?.name || 'Unknown Editor'
+          editor_name: editorName
         });
       }
 
@@ -674,8 +678,8 @@ export default function MessagesPage() {
                   <div className="pt-4 border-t dark:border-border">
                     <h4 className="font-medium text-gray-900 dark:text-white mb-2">Application Details</h4>
                     <div className="text-sm text-gray-600 dark:text-muted-foreground">
-                      <p>Editor: {application.editor_name}</p>
-                      <p>Proposed Rate: ${application.proposed_rate}/hr</p>
+                      <p>{application.editor_name}</p>
+                      <p>Proposed Rate: ${application.proposed_rate}/video</p>
                       <p>Status: {application.status}</p>
                     </div>
                   </div>

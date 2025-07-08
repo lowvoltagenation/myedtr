@@ -53,7 +53,6 @@ export function Header() {
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [avatarError, setAvatarError] = useState(false); // Keep for now, will simplify further
   
   const router = useRouter();
   const pathname = usePathname();
@@ -194,23 +193,25 @@ export function Header() {
                       <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
                         {loading ? (
                           <div className="h-8 w-8 bg-gray-200 dark:bg-muted rounded-full animate-pulse" />
-                        ) : hasAvatar && !avatarError ? (
+                        ) : hasAvatar ? (
                           <img
                             src={avatarUrl!}
                             alt={profile?.name || user?.email || "User"}
                             className="h-8 w-8 rounded-full object-cover"
-                            onError={() => {
-                              setAvatarError(true);
-                              // Automatically retry avatar loading
-                              setTimeout(() => retryAvatar(), 1000);
+                            onError={(e) => {
+                              // Fallback to letter on error
+                              e.currentTarget.style.display = 'none';
+                              const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                              if (fallback) fallback.style.display = 'flex';
                             }}
-                            onLoad={() => setAvatarError(false)}
                           />
-                        ) : (
-                          <div className="h-8 w-8 rounded-full gradient-bg flex items-center justify-center text-white text-sm font-bold">
-                            {fallbackLetter}
-                          </div>
-                        )}
+                        ) : null}
+                        <div 
+                          className="h-8 w-8 rounded-full gradient-bg flex items-center justify-center text-white text-sm font-bold"
+                          style={{ display: hasAvatar ? 'none' : 'flex' }}
+                        >
+                          {fallbackLetter}
+                        </div>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">

@@ -35,10 +35,7 @@ export interface AuthContextType extends AuthState {
   retry: () => Promise<void>;
 }
 
-// Single auth context - no dual contexts
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Create supabase client once
 const supabase = createClient();
 
 interface AuthProviderProps {
@@ -46,7 +43,6 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  // Single consolidated state
   const [state, setState] = useState<AuthState>({
     user: null,
     profile: null,
@@ -55,10 +51,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     error: null,
   });
 
-  // Profile loading function - simplified and more reliable
+  // Simplified profile loading
   const loadUserProfile = useCallback(async (user: User): Promise<UserProfile | null> => {
     try {
-      // Check if user is an editor or client
+      console.log('🔧 Loading profile for user:', user.id);
+      
+      // Get user type and basic info
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('user_type, avatar_url, name, bio, location')
@@ -66,8 +64,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         .single();
 
       if (userError) {
-        console.warn('User data query failed, using fallback profile:', userError.message);
-        // Return basic fallback profile
+        console.warn('User data query failed:', userError.message);
         return {
           id: user.id,
           name: user.email?.split('@')[0] || 'User',
@@ -78,42 +75,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (userData?.user_type === 'editor') {
         // Get editor profile
-        const { data: editorProfile, error: profileError } = await supabase
+        const { data: editorProfile } = await supabase
           .from('editor_profiles')
-          .select('id, name, avatar_url, tier_level, bio, location, per_video_rate, specialties, industry_niches, years_experience')
+          .select('*')
           .eq('user_id', user.id)
           .single();
 
-        if (profileError) {
-          console.warn('Editor profile query failed, using basic profile:', profileError.message);
+        if (editorProfile) {
           return {
-            id: user.id,
-            name: userData.name || user.email?.split('@')[0] || 'Editor',
-            user_type: 'editor',
-            tier_level: 'free',
-            avatar_url: userData.avatar_url,
+            ...editorProfile,
+            user_type: 'editor'
           };
         }
-
-        return {
-          ...editorProfile,
-          user_type: 'editor'
-        };
-      } else {
-        // For clients, use user data from users table
-        return {
-          id: user.id,
-          name: userData.name || user.email?.split('@')[0] || 'Client',
-          user_type: userData.user_type || 'client',
-          tier_level: 'free',
-          avatar_url: userData.avatar_url,
-          bio: userData.bio,
-          location: userData.location
-        };
       }
+
+      // Return basic profile for clients or fallback
+      return {
+        id: user.id,
+        name: userData.name || user.email?.split('@')[0] || 'User',
+        user_type: userData.user_type || 'client',
+        tier_level: 'free',
+        avatar_url: userData.avatar_url,
+        bio: userData.bio,
+        location: userData.location
+      };
     } catch (error) {
-      console.error('Error loading profile:', error);
-      // Return basic fallback profile
+      console.error('Profile loading error:', error);
       return {
         id: user.id,
         name: user.email?.split('@')[0] || 'User',
@@ -123,69 +110,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
-  // Initialize auth state - single initialization
-  const initializeAuth = useCallback(async () => {
-    console.log('🔧 AuthContext: Initializing auth...');
-    try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
-      
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log('🔧 AuthContext: Session result:', { session: !!session, error: !!sessionError });
-      
-      if (sessionError) {
-        throw new Error(`Session error: ${sessionError.message}`);
-      }
-      
-      if (session?.user) {
-        console.log('🔧 AuthContext: Loading profile for user:', session.user.id);
-        const profile = await loadUserProfile(session.user);
-        console.log('🔧 AuthContext: Profile loaded:', { profile: !!profile });
-        setState({
-          user: session.user,
-          profile,
-          loading: false,
-          hydrated: true,
-          error: null,
-        });
-      } else {
-        console.log('🔧 AuthContext: No session, setting to unauthenticated state');
-        setState({
-          user: null,
-          profile: null,
-          loading: false,
-          hydrated: true,
-          error: null,
-        });
-      }
-    } catch (error) {
-      console.error('Auth initialization failed:', error);
-      setState({
-        user: null,
-        profile: null,
-        loading: false,
-        hydrated: true,
-        error: error instanceof Error ? error.message : 'Authentication failed',
-      });
-    }
-  }, []);
-
-  // Setup auth listener - single listener
+  // Single initialization effect
   useEffect(() => {
     let mounted = true;
-    
-    const initAuth = async () => {
+
+    const initializeAuth = async () => {
       try {
-        setState(prev => ({ ...prev, loading: true, error: null }));
+        console.log('🔧 AuthContext: Initializing...');
         
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (!mounted) return;
-        
-        if (sessionError) {
-          throw new Error(`Session error: ${sessionError.message}`);
+
+        if (error) {
+          console.error('Session error:', error);
+          setState({
+            user: null,
+            profile: null,
+            loading: false,
+            hydrated: true,
+            error: error.message,
+          });
+          return;
         }
-        
+
         if (session?.user) {
+          console.log('🔧 AuthContext: User found, loading profile');
           const profile = await loadUserProfile(session.user);
           
           if (mounted) {
@@ -198,6 +148,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             });
           }
         } else {
+          console.log('🔧 AuthContext: No user session');
           if (mounted) {
             setState({
               user: null,
@@ -209,31 +160,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
       } catch (error) {
-        console.error('Auth initialization failed:', error);
+        console.error('Auth initialization error:', error);
         if (mounted) {
           setState({
             user: null,
             profile: null,
             loading: false,
             hydrated: true,
-            error: error instanceof Error ? error.message : 'Authentication failed',
+            error: error instanceof Error ? error.message : 'Auth initialization failed',
           });
         }
       }
     };
-    
-    // Initialize auth
-    initAuth();
+
+    // Initialize
+    initializeAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (!mounted) return;
+        console.log('🔧 AuthContext: Auth state change:', event);
         
+        if (!mounted) return;
+
         try {
           if (session?.user) {
-            setState(prev => ({ ...prev, loading: true, error: null }));
+            console.log('🔧 AuthContext: Auth change - loading profile');
+            setState(prev => ({ ...prev, loading: true }));
             const profile = await loadUserProfile(session.user);
+            
             if (mounted) {
               setState({
                 user: session.user,
@@ -244,6 +199,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               });
             }
           } else {
+            console.log('🔧 AuthContext: Auth change - clearing state');
             if (mounted) {
               setState({
                 user: null,
@@ -260,7 +216,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             setState(prev => ({
               ...prev,
               loading: false,
-              error: error instanceof Error ? error.message : 'Authentication error',
+              error: error instanceof Error ? error.message : 'Auth error',
             }));
           }
         }
@@ -271,17 +227,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, []); // Empty dependency array - only run once
 
-  // Utility functions
+  // Helper functions
   const refreshProfile = useCallback(async () => {
     if (state.user) {
-      setState(prev => ({ ...prev, loading: true, error: null }));
+      setState(prev => ({ ...prev, loading: true }));
       try {
         const profile = await loadUserProfile(state.user);
         setState(prev => ({ ...prev, profile, loading: false }));
       } catch (error) {
-        console.error('Profile refresh failed:', error);
         setState(prev => ({ 
           ...prev, 
           loading: false, 
@@ -302,15 +257,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const retry = useCallback(async () => {
-    await initializeAuth();
-  }, [initializeAuth]);
+    setState(prev => ({ ...prev, loading: true, error: null }));
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) throw error;
+      
+      if (session?.user) {
+        const profile = await loadUserProfile(session.user);
+        setState({
+          user: session.user,
+          profile,
+          loading: false,
+          hydrated: true,
+          error: null,
+        });
+      } else {
+        setState({
+          user: null,
+          profile: null,
+          loading: false,
+          hydrated: true,
+          error: null,
+        });
+      }
+    } catch (error) {
+      setState({
+        user: null,
+        profile: null,
+        loading: false,
+        hydrated: true,
+        error: error instanceof Error ? error.message : 'Retry failed',
+      });
+    }
+  }, [loadUserProfile]);
 
   // Computed values
   const isAuthenticated = !!state.user;
   const isEditor = state.profile?.user_type === 'editor';
   const isClient = state.profile?.user_type === 'client';
 
-  // Single context value
   const contextValue: AuthContextType = {
     ...state,
     refreshProfile,
@@ -328,5 +314,4 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
-// Export single context
 export { AuthContext };

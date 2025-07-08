@@ -252,7 +252,6 @@ export type Database = {
           name: string
           bio: string | null
           avatar_url: string | null
-          website_url: string | null
           location: string | null
           per_video_rate: number | null
           specialties: string[]
@@ -269,7 +268,6 @@ export type Database = {
           name: string
           bio?: string | null
           avatar_url?: string | null
-          website_url?: string | null
           location?: string | null
           per_video_rate?: number | null
           specialties?: string[]
@@ -286,7 +284,6 @@ export type Database = {
           name?: string
           bio?: string | null
           avatar_url?: string | null
-          website_url?: string | null
           location?: string | null
           per_video_rate?: number | null
           specialties?: string[]

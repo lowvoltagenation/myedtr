@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, DollarSign, Star, MessageCircle, ArrowLeft } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { PortfolioVideos } from "@/components/profile/portfolio-videos";
+import { ContactEditorButton } from "@/components/profile/contact-editor-button";
 
 interface EditorProfilePageProps {
   params: Promise<{
@@ -92,10 +93,11 @@ export default async function EditorProfilePage({ params }: EditorProfilePagePro
                       </div>
                       
                       <div className="flex flex-col gap-3">
-                        <Button size="lg" className="w-full md:w-auto">
-                          <MessageCircle className="w-4 h-4 mr-2" />
-                          Contact Editor
-                        </Button>
+                        <ContactEditorButton 
+                          editorId={profile.id}
+                          editorName={profile.name}
+                          size="lg"
+                        />
                         <div className="flex items-center justify-center md:justify-start">
                           <div className="flex items-center">
                             <Star className="w-4 h-4 text-yellow-400 fill-current" />
@@ -211,10 +213,12 @@ export default async function EditorProfilePage({ params }: EditorProfilePagePro
                 <CardTitle className="dark:text-white">Get in Touch</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button className="w-full" size="lg">
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Send Message
-                </Button>
+                <ContactEditorButton 
+                  editorId={profile.id}
+                  editorName={profile.name}
+                  size="lg"
+                  className="w-full"
+                />
                 <p className="text-sm text-gray-600 text-center dark:text-gray-400">
                   Typically responds within 1 hour
                 </p>

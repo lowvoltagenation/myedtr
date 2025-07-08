@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +32,7 @@ interface Project {
 
 interface EditorProfile {
   id: string;
-  display_name: string;
+  name: string;
   per_video_rate: number;
   specialties: string[];
   bio: string;
@@ -49,6 +50,7 @@ export default function ApplyToProjectPage() {
   const params = useParams();
   const projectId = params.projectId as string;
   const router = useRouter();
+  const { user, isAuthenticated, authLoading } = useAuth();
   
   const [project, setProject] = useState<Project | null>(null);
   const [editorProfile, setEditorProfile] = useState<EditorProfile | null>(null);
@@ -63,19 +65,25 @@ export default function ApplyToProjectPage() {
   const [proposedRate, setProposedRate] = useState("");
 
   useEffect(() => {
-    fetchProjectAndProfile();
-  }, [projectId]);
-
-  const fetchProjectAndProfile = async () => {
-    const supabase = createClient();
-    
-    try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+    if (!authLoading) {
+      if (!isAuthenticated) {
         router.push('/login');
         return;
       }
+      fetchProjectAndProfile();
+    }
+  }, [projectId, isAuthenticated, authLoading, user?.id]);
+
+  const fetchProjectAndProfile = async () => {
+    if (!user?.id) {
+      setError('User not authenticated');
+      setLoading(false);
+      return;
+    }
+
+    const supabase = createClient();
+    
+    try {
 
       // Get editor profile
       const { data: profile } = await supabase
@@ -106,13 +114,22 @@ export default function ApplyToProjectPage() {
 
       setProject(projectData);
 
-      // Check if user already applied
-      const { data: applicationData } = await supabase
+      // Check if user already applied (this is where the 406 error occurs)
+      console.log('🔍 Checking for existing application:', { projectId, editorId: user.id });
+      const { data: applicationData, error: appError } = await supabase
         .from('project_applications')
         .select('*')
         .eq('project_id', projectId)
         .eq('editor_id', user.id)
         .single();
+
+      if (appError) {
+        console.log('📝 Application check error (this is expected if no application exists):', appError);
+        // Only log the error if it's not a "not found" error
+        if (appError.code !== 'PGRST116') {
+          console.error('❌ Unexpected application check error:', appError);
+        }
+      }
 
       if (applicationData) {
         setExistingApplication(applicationData);
@@ -152,8 +169,7 @@ export default function ApplyToProjectPage() {
     const supabase = createClient();
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user?.id) {
         setError('You must be logged in to apply');
         return;
       }
@@ -205,7 +221,7 @@ export default function ApplyToProjectPage() {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 p-6">
         <div className="max-w-4xl mx-auto">
@@ -532,7 +548,7 @@ export default function ApplyToProjectPage() {
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{editorProfile?.display_name}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{editorProfile?.name}</h3>
                     <p className="text-gray-600 dark:text-muted-foreground text-sm line-clamp-3">{editorProfile?.bio}</p>
                   </div>
                   

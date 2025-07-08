@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Plus, Briefcase, Users, MessageCircle, Calendar } from "lucide-react";
 import { Suspense } from "react";
 import { DashboardSkeleton } from "@/components/ui/loading-skeleton";
+import { ApplicationCard } from "@/components/client/application-card";
 
 export default function ClientDashboard() {
   return (
@@ -32,25 +33,22 @@ async function ClientDashboardContent() {
       project_applications(
         id,
         status,
-        editor_profiles(display_name)
+        created_at,
+        cover_letter,
+        proposed_rate,
+        editor_id,
+        users!project_applications_editor_id_fkey(
+          id,
+          editor_profiles(name, avatar_url, bio, specialties)
+        )
       )
     `)
     .eq('client_id', user.id)
     .order('created_at', { ascending: false });
 
-  // Debug logging
-  console.log('Current user ID:', user.id);
-  console.log('Projects query error:', projectsError);
-  console.log('Raw projects data:', projects);
-  console.log('Number of projects found:', projects?.length || 0);
-
-  // Also fetch all projects to see if the issue is with the filter
-  const { data: allProjects } = await supabase
-    .from('projects')
-    .select('id, title, client_id, status, created_at')
-    .order('created_at', { ascending: false });
-  
-  console.log('All projects in database:', allProjects);
+  if (projectsError) {
+    console.error('Projects query error:', projectsError);
+  }
   
   const activeProjects = projects?.filter(p => p.status === 'open') || [];
   const completedProjects = projects?.filter(p => p.status === 'completed') || [];
@@ -94,35 +92,6 @@ async function ClientDashboardContent() {
           </div>
         </div>
 
-        {/* Debug Section - Remove this once issue is resolved */}
-        <Card className="mb-8 border-yellow-200 bg-yellow-50">
-          <CardHeader>
-            <CardTitle className="text-yellow-800">Debug Information</CardTitle>
-            <CardDescription className="text-yellow-700">
-              This debug section will help identify the issue. Remove once resolved.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 text-sm font-mono">
-              <p><strong>User ID:</strong> {user.id}</p>
-              <p><strong>Projects Query Error:</strong> {projectsError ? JSON.stringify(projectsError) : 'None'}</p>
-              <p><strong>Number of user projects:</strong> {projects?.length || 0}</p>
-              <p><strong>Total projects in database:</strong> {allProjects?.length || 0}</p>
-              {allProjects && allProjects.length > 0 && (
-                <div>
-                  <p><strong>Recent projects in database:</strong></p>
-                  <ul className="pl-4">
-                    {allProjects.slice(0, 5).map(p => (
-                      <li key={p.id} className="text-xs">
-                        {p.title} (client_id: {p.client_id}, status: {p.status})
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -240,32 +209,11 @@ async function ClientDashboardContent() {
                 <div className="space-y-4">
                   {projects?.flatMap(p => 
                     p.project_applications?.map((app: any) => (
-                      <div key={app.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h4 className="font-medium text-gray-900">
-                              {app.editor_profiles?.display_name}
-                            </h4>
-                            <p className="text-sm text-gray-600">Applied to: {p.title}</p>
-                          </div>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            app.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                            app.status === 'accepted' ? 'bg-green-100 text-green-700' :
-                            'bg-red-100 text-red-700'
-                          }`}>
-                            {app.status}
-                          </span>
-                        </div>
-                        <div className="flex gap-2 mt-3">
-                          <Button size="sm" variant="outline">View Application</Button>
-                          {app.status === 'pending' && (
-                            <>
-                              <Button size="sm">Accept</Button>
-                              <Button size="sm" variant="outline">Decline</Button>
-                            </>
-                          )}
-                        </div>
-                      </div>
+                      <ApplicationCard 
+                        key={app.id}
+                        application={app}
+                        project={p}
+                      />
                     ))
                   ).slice(0, 3)}
                 </div>

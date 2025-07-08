@@ -18,7 +18,6 @@ import {
   CheckCircle,
   MapPin,
   DollarSign,
-  Globe,
   Phone,
   Mail,
   Eye
@@ -36,7 +35,6 @@ interface UserProfile {
   name: string;
   bio: string;
   avatar_url?: string;
-  website_url?: string;
   location?: string;
   per_video_rate?: number;
   specialties?: string[];
@@ -54,8 +52,8 @@ const SPECIALTIES = [
   "Color Grading",
   "Sound Design/Audio",
   "Animation",
-  "Short-Form Content (TikTok/Instagram/YouTube Shorts)",
-  "Long-Form Content (YouTube/Podcasts)"
+  "Short-Form Content",
+  "Long-Form Content"
 ];
 
 const INDUSTRY_NICHES = [
@@ -95,7 +93,6 @@ export default function EditProfilePage() {
   const [formData, setFormData] = useState({
     name: "",
     bio: "",
-    website_url: "",
     location: "",
     per_video_rate: "",
     specialties: [] as string[],
@@ -200,7 +197,6 @@ export default function EditProfilePage() {
         setFormData({
           name: profileData.name || "",
           bio: profileData.bio || "",
-          website_url: profileData.website_url || "",
           location: profileData.location || "",
           per_video_rate: profileData.per_video_rate?.toString() || "",
           specialties: profileData.specialties || [],
@@ -235,7 +231,6 @@ export default function EditProfilePage() {
         setFormData({
           name: profileData.name,
           bio: profileData.bio,
-          website_url: "",
           location: profileData.location || "",
           per_video_rate: "",
           specialties: [],
@@ -357,7 +352,6 @@ export default function EditProfilePage() {
         const updateData = {
           name: formData.name,
           bio: formData.bio,
-          website_url: formData.website_url || null,
           location: formData.location || null,
           per_video_rate: formData.per_video_rate ? parseFloat(formData.per_video_rate) : null,
           specialties: formData.specialties,
@@ -565,19 +559,7 @@ export default function EditProfilePage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="website">Website URL</Label>
-                    <div className="relative">
-                      <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input
-                        id="website"
-                        value={formData.website_url}
-                        onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
-                        placeholder="https://yourwebsite.com"
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
+
 
                   {profile.user_type === 'editor' && (
                     <div className="space-y-2">

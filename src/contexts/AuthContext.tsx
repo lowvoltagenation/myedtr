@@ -66,7 +66,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Profile loading function
   const loadUserProfile = useCallback(async (userId: string, sessionUser: User) => {
-    if (profileLoadingRef.current) return;
+    if (profileLoadingRef.current) {
+      return;
+    }
+    
     
     profileLoadingRef.current = true;
     setProfileLoading(true);
@@ -79,6 +82,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         .select('user_type, avatar_url, name, bio, location')
         .eq('id', userId)
         .single();
+
 
 
       if (userError) {
@@ -100,6 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           .select('id, name, avatar_url, tier_level, bio, location, per_video_rate, specialties, industry_niches, years_experience')
           .eq('user_id', userId)
           .single();
+
 
 
         if (profileError) {

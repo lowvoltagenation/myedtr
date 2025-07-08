@@ -167,7 +167,10 @@ export function Header() {
               <ThemeToggle />
               
               {(authLoading || !hydrated) ? (
-                <div className="w-8 h-8 bg-gray-200 dark:bg-muted rounded-full animate-pulse" />
+                <div className="flex items-center space-x-3">
+                  <div className="w-16 h-8 bg-gray-200 dark:bg-muted rounded animate-pulse" />
+                  <div className="w-12 h-8 bg-gray-200 dark:bg-muted rounded animate-pulse" />
+                </div>
               ) : isAuthenticated ? (
                 <>
                   {/* Messages */}

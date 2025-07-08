@@ -678,7 +678,6 @@ export default function MessagesPage() {
                   <div className="pt-4 border-t dark:border-border">
                     <h4 className="font-medium text-gray-900 dark:text-white mb-2">Application Details</h4>
                     <div className="text-sm text-gray-600 dark:text-muted-foreground">
-                      <p>{application.editor_name}</p>
                       <p>Proposed Rate: ${application.proposed_rate}/video</p>
                       <p>Status: {application.status}</p>
                     </div>

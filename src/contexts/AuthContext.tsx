@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
+import { createContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
@@ -18,30 +18,25 @@ export interface UserProfile {
   years_experience?: number;
 }
 
-export interface AuthContextType {
+export interface AuthState {
   user: User | null;
   profile: UserProfile | null;
-  authLoading: boolean;
-  profileLoading: boolean;
+  loading: boolean;
   hydrated: boolean;
   error: string | null;
+}
+
+export interface AuthContextType extends AuthState {
   refreshProfile: () => Promise<void>;
   clearAuth: () => void;
   isAuthenticated: boolean;
   isEditor: boolean;
   isClient: boolean;
+  retry: () => Promise<void>;
 }
 
-export interface ProfileContextType {
-  profile: UserProfile | null;
-  profileLoading: boolean;
-  refreshProfile: () => Promise<void>;
-  error: string | null;
-}
-
-// Separate contexts to prevent over-rendering
+// Single auth context - no dual contexts
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 // Create supabase client once
 const supabase = createClient();
@@ -51,142 +46,129 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  // Auth state
-  const [user, setUser] = useState<User | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [hydrated, setHydrated] = useState(false);
-  
-  // Profile state  
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Prevent concurrent profile loads
-  const profileLoadingRef = useRef(false);
+  // Single consolidated state
+  const [state, setState] = useState<AuthState>({
+    user: null,
+    profile: null,
+    loading: true,
+    hydrated: false,
+    error: null,
+  });
 
-  // Profile loading function
-  const loadUserProfile = useCallback(async (userId: string, sessionUser: User) => {
-    if (profileLoadingRef.current) {
-      return;
-    }
-    
-    
-    profileLoadingRef.current = true;
-    setProfileLoading(true);
-    setError(null);
-    
+  // Profile loading function - simplified and more reliable
+  const loadUserProfile = useCallback(async (user: User): Promise<UserProfile | null> => {
     try {
       // Check if user is an editor or client
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('user_type, avatar_url, name, bio, location')
-        .eq('id', userId)
+        .eq('id', user.id)
         .single();
 
-
-
       if (userError) {
-        console.error('❌ Error fetching user data:', userError);
-        // Fallback to basic profile if user query fails
-        setProfile({
-          id: userId,
-          name: sessionUser?.email?.split('@')[0] || 'User',
-          user_type: 'client' as 'editor' | 'client',
-          tier_level: 'free' as const
-        });
-        return;
+        console.warn('User data query failed, using fallback profile:', userError.message);
+        // Return basic fallback profile
+        return {
+          id: user.id,
+          name: user.email?.split('@')[0] || 'User',
+          user_type: 'client',
+          tier_level: 'free'
+        };
       }
 
       if (userData?.user_type === 'editor') {
-        // Get editor profile with explicit avatar_url selection
+        // Get editor profile
         const { data: editorProfile, error: profileError } = await supabase
           .from('editor_profiles')
           .select('id, name, avatar_url, tier_level, bio, location, per_video_rate, specialties, industry_niches, years_experience')
-          .eq('user_id', userId)
+          .eq('user_id', user.id)
           .single();
 
-
-
         if (profileError) {
-          console.error('❌ Error fetching editor profile:', profileError);
+          console.warn('Editor profile query failed, using basic profile:', profileError.message);
+          return {
+            id: user.id,
+            name: userData.name || user.email?.split('@')[0] || 'Editor',
+            user_type: 'editor',
+            tier_level: 'free',
+            avatar_url: userData.avatar_url,
+          };
         }
 
-        if (editorProfile) {
-          const profileData = {
-            ...editorProfile,
-            user_type: 'editor' as const
-          };
-          setProfile(profileData);
-        } else {
-          // Editor profile doesn't exist yet
-          const fallbackProfile = {
-            id: userId,
-            name: sessionUser?.email?.split('@')[0] || 'Editor',
-            user_type: 'editor' as 'editor' | 'client',
-            tier_level: 'free' as const
-          };
-          setProfile(fallbackProfile);
-        }
+        return {
+          ...editorProfile,
+          user_type: 'editor'
+        };
       } else {
         // For clients, use user data from users table
-        const clientProfile = {
-          id: userId,
-          name: userData?.name || sessionUser?.email?.split('@')[0] || 'Client',
-          user_type: (userData?.user_type || 'client') as 'editor' | 'client',
-          tier_level: 'free' as const,
-          avatar_url: userData?.avatar_url,
-          bio: userData?.bio,
-          location: userData?.location
+        return {
+          id: user.id,
+          name: userData.name || user.email?.split('@')[0] || 'Client',
+          user_type: userData.user_type || 'client',
+          tier_level: 'free',
+          avatar_url: userData.avatar_url,
+          bio: userData.bio,
+          location: userData.location
         };
-        setProfile(clientProfile);
       }
     } catch (error) {
-      console.error('❌ Error fetching profile:', error);
-      setError('Failed to load profile');
-      // Fallback profile
-      const fallbackProfile = {
-        id: userId,
-        name: sessionUser?.email?.split('@')[0] || 'User',
-        user_type: 'client' as 'editor' | 'client',
-        tier_level: 'free' as const
+      console.error('Error loading profile:', error);
+      // Return basic fallback profile
+      return {
+        id: user.id,
+        name: user.email?.split('@')[0] || 'User',
+        user_type: 'client',
+        tier_level: 'free'
       };
-      setProfile(fallbackProfile);
-    } finally {
-      profileLoadingRef.current = false;
-      setProfileLoading(false);
     }
   }, []);
 
-  // Initialize auth state
+  // Initialize auth state - single initialization
+  const initializeAuth = useCallback(async () => {
+    try {
+      setState(prev => ({ ...prev, loading: true, error: null }));
+      
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        throw new Error(`Session error: ${sessionError.message}`);
+      }
+      
+      if (session?.user) {
+        const profile = await loadUserProfile(session.user);
+        setState({
+          user: session.user,
+          profile,
+          loading: false,
+          hydrated: true,
+          error: null,
+        });
+      } else {
+        setState({
+          user: null,
+          profile: null,
+          loading: false,
+          hydrated: true,
+          error: null,
+        });
+      }
+    } catch (error) {
+      console.error('Auth initialization failed:', error);
+      setState({
+        user: null,
+        profile: null,
+        loading: false,
+        hydrated: true,
+        error: error instanceof Error ? error.message : 'Authentication failed',
+      });
+    }
+  }, [loadUserProfile]);
+
+  // Setup auth listener - single listener
   useEffect(() => {
     let mounted = true;
     
-    const initializeAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!mounted) return;
-        
-        if (session?.user) {
-          setUser(session.user);
-          await loadUserProfile(session.user.id, session.user);
-        } else {
-          setUser(null);
-          setProfile(null);
-        }
-        
-        setAuthLoading(false);
-        setHydrated(true);
-      } catch (error) {
-        console.error('❌ Error initializing auth:', error);
-        if (mounted) {
-          setAuthLoading(false);
-          setHydrated(true);
-          setError('Failed to initialize authentication');
-        }
-      }
-    };
-
+    // Initialize auth
     initializeAuth();
 
     // Listen for auth changes
@@ -196,16 +178,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         try {
           if (session?.user) {
-            setUser(session.user);
-            await loadUserProfile(session.user.id, session.user);
+            setState(prev => ({ ...prev, loading: true, error: null }));
+            const profile = await loadUserProfile(session.user);
+            setState({
+              user: session.user,
+              profile,
+              loading: false,
+              hydrated: true,
+              error: null,
+            });
           } else {
-            setUser(null);
-            setProfile(null);
-            setProfileLoading(false);
+            setState({
+              user: null,
+              profile: null,
+              loading: false,
+              hydrated: true,
+              error: null,
+            });
           }
         } catch (error) {
-          console.error('Error handling auth change:', error);
-          setError('Authentication error occurred');
+          console.error('Auth state change error:', error);
+          setState(prev => ({
+            ...prev,
+            loading: false,
+            error: error instanceof Error ? error.message : 'Authentication error',
+          }));
         }
       }
     );
@@ -214,73 +211,62 @@ export function AuthProvider({ children }: AuthProviderProps) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [loadUserProfile]);
-
-  // Handle profile update events
-  useEffect(() => {
-    const handleProfileUpdate = () => {
-      if (user?.id) {
-        loadUserProfile(user.id, user);
-      }
-    };
-
-    window.addEventListener('profileUpdated', handleProfileUpdate);
-
-    return () => {
-      window.removeEventListener('profileUpdated', handleProfileUpdate);
-    };
-  }, [user?.id, loadUserProfile]);
+  }, [initializeAuth, loadUserProfile]);
 
   // Utility functions
   const refreshProfile = useCallback(async () => {
-    if (user?.id) {
-      await loadUserProfile(user.id, user);
+    if (state.user) {
+      setState(prev => ({ ...prev, loading: true, error: null }));
+      try {
+        const profile = await loadUserProfile(state.user);
+        setState(prev => ({ ...prev, profile, loading: false }));
+      } catch (error) {
+        console.error('Profile refresh failed:', error);
+        setState(prev => ({ 
+          ...prev, 
+          loading: false, 
+          error: error instanceof Error ? error.message : 'Profile refresh failed' 
+        }));
+      }
     }
-  }, [user?.id, loadUserProfile]);
+  }, [state.user, loadUserProfile]);
 
   const clearAuth = useCallback(() => {
-    setUser(null);
-    setProfile(null);
-    setError(null);
-    setProfileLoading(false);
+    setState({
+      user: null,
+      profile: null,
+      loading: false,
+      hydrated: true,
+      error: null,
+    });
   }, []);
 
-  // Computed values
-  const isAuthenticated = !!user;
-  const isEditor = profile?.user_type === 'editor';
-  const isClient = profile?.user_type === 'client';
+  const retry = useCallback(async () => {
+    await initializeAuth();
+  }, [initializeAuth]);
 
-  // Auth context value
-  const authValue: AuthContextType = {
-    user,
-    profile,
-    authLoading,
-    profileLoading,
-    hydrated,
-    error,
+  // Computed values
+  const isAuthenticated = !!state.user;
+  const isEditor = state.profile?.user_type === 'editor';
+  const isClient = state.profile?.user_type === 'client';
+
+  // Single context value
+  const contextValue: AuthContextType = {
+    ...state,
     refreshProfile,
     clearAuth,
     isAuthenticated,
     isEditor,
     isClient,
-  };
-
-  // Profile context value (separate to prevent over-rendering)
-  const profileValue: ProfileContextType = {
-    profile,
-    profileLoading,
-    refreshProfile,
-    error,
+    retry,
   };
 
   return (
-    <AuthContext.Provider value={authValue}>
-      <ProfileContext.Provider value={profileValue}>
-        {children}
-      </ProfileContext.Provider>
+    <AuthContext.Provider value={contextValue}>
+      {children}
     </AuthContext.Provider>
   );
 }
 
-// Export context for advanced usage
-export { AuthContext, ProfileContext };
+// Export single context
+export { AuthContext };

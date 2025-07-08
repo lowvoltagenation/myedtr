@@ -1,9 +1,9 @@
 "use client";
 
 import { useContext } from "react";
-import { AuthContext, ProfileContext, type AuthContextType, type ProfileContextType } from "@/contexts/AuthContext";
+import { AuthContext, type AuthContextType } from "@/contexts/AuthContext";
 
-// Main auth hook with full context
+// Main auth hook with full context - simplified
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   
@@ -14,24 +14,13 @@ export function useAuth(): AuthContextType {
   return context;
 }
 
-// Profile-only hook to prevent unnecessary re-renders
-export function useProfile(): ProfileContextType {
-  const context = useContext(ProfileContext);
-  
-  if (context === undefined) {
-    throw new Error('useProfile must be used within an AuthProvider');
-  }
-  
-  return context;
-}
-
-// Auth-only hook (no profile data) for components that only need auth state
+// Simplified auth state hook
 export function useAuthState() {
-  const { user, authLoading, hydrated, error, clearAuth, isAuthenticated } = useAuth();
+  const { user, loading, hydrated, error, clearAuth, isAuthenticated } = useAuth();
   
   return {
     user,
-    authLoading,
+    loading,
     hydrated,
     error,
     clearAuth,
@@ -39,7 +28,7 @@ export function useAuthState() {
   };
 }
 
-// Specific role hooks for cleaner component logic
+// Role hooks for cleaner component logic
 export function useIsAuthenticated(): boolean {
   const { isAuthenticated } = useAuth();
   return isAuthenticated;
@@ -60,16 +49,14 @@ export function useUserRole(): 'editor' | 'client' | null {
   return profile?.user_type || null;
 }
 
-// Loading state helpers
+// Simplified loading state
 export function useAuthLoading() {
-  const { authLoading, profileLoading, hydrated } = useAuth();
+  const { loading, hydrated } = useAuth();
   
   return {
-    authLoading,
-    profileLoading,
+    loading,
     hydrated,
-    isLoading: authLoading || profileLoading,
-    isInitializing: authLoading && !hydrated,
+    isInitializing: loading && !hydrated,
   };
 }
 
@@ -89,40 +76,41 @@ export function useUserInfo() {
 
 // Profile management helpers
 export function useProfileActions() {
-  const { refreshProfile, error } = useAuth();
+  const { refreshProfile, error, retry } = useAuth();
   
   return {
     refreshProfile,
+    retry,
     error,
   };
 }
 
 // Route protection helpers
 export function useRequireAuth() {
-  const { isAuthenticated, authLoading, hydrated } = useAuth();
+  const { isAuthenticated, loading, hydrated } = useAuth();
   
   return {
     isAuthenticated,
-    isLoading: authLoading || !hydrated,
-    shouldRedirect: hydrated && !authLoading && !isAuthenticated,
+    isLoading: loading || !hydrated,
+    shouldRedirect: hydrated && !loading && !isAuthenticated,
   };
 }
 
 export function useRequireRole(requiredRole: 'editor' | 'client') {
-  const { isAuthenticated, profile, authLoading, profileLoading, hydrated } = useAuth();
+  const { isAuthenticated, profile, loading, hydrated } = useAuth();
   
   const hasRequiredRole = profile?.user_type === requiredRole;
-  const isLoading = authLoading || profileLoading || !hydrated;
+  const isLoading = loading || !hydrated;
   
   return {
     hasRequiredRole,
     isLoading,
-    shouldRedirect: hydrated && !authLoading && (!isAuthenticated || (!profileLoading && !hasRequiredRole)),
+    shouldRedirect: hydrated && !loading && (!isAuthenticated || !hasRequiredRole),
     userRole: profile?.user_type || null,
   };
 }
 
-// Subscription tier helpers (works with existing useSubscription hook)
+// Subscription tier helpers
 export function useHasTier(requiredTier: 'free' | 'pro' | 'premium') {
   const { profile } = useAuth();
   
@@ -132,9 +120,9 @@ export function useHasTier(requiredTier: 'free' | 'pro' | 'premium') {
   return tierHierarchy[userTier] >= tierHierarchy[requiredTier];
 }
 
-// Avatar helpers
+// Avatar helpers with retry mechanism
 export function useAvatar() {
-  const { profile, user } = useAuth();
+  const { profile, user, refreshProfile } = useAuth();
   
   const avatarUrl = profile?.avatar_url;
   const fallbackLetter = (profile?.name || user?.email || 'U').charAt(0).toUpperCase();
@@ -143,5 +131,6 @@ export function useAvatar() {
     avatarUrl,
     fallbackLetter,
     hasAvatar: !!avatarUrl,
+    retryAvatar: refreshProfile, // Built-in retry mechanism
   };
 }

@@ -235,11 +235,11 @@ export default function MessagesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-96 bg-gray-200 rounded-lg"></div>
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+            <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
           </div>
         </div>
       </div>
@@ -248,9 +248,9 @@ export default function MessagesPage() {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 p-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Project Not Found</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Project Not Found</h1>
           <Link href="/dashboard">
             <Button>Back to Dashboard</Button>
           </Link>
@@ -260,13 +260,13 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <Link 
             href={currentUser?.user_type === 'client' ? '/dashboard/client' : '/dashboard/editor'} 
-            className="inline-flex items-center text-purple-600 hover:text-purple-700 mb-4"
+            className="inline-flex items-center text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
@@ -274,10 +274,10 @@ export default function MessagesPage() {
           
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Messages: {project.title}
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-muted-foreground">
                 Conversation with {otherParticipant}
               </p>
             </div>
@@ -301,8 +301,8 @@ export default function MessagesPage() {
           {/* Messages Section */}
           <div className="lg:col-span-2">
             <Card className="h-[600px] flex flex-col">
-              <CardHeader className="border-b">
-                <CardTitle className="text-lg">Conversation</CardTitle>
+              <CardHeader className="border-b dark:border-border">
+                <CardTitle className="text-lg dark:text-white">Conversation</CardTitle>
               </CardHeader>
               
               {/* Messages List */}
@@ -318,15 +318,19 @@ export default function MessagesPage() {
                       <div
                         className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                           message.sender_id === currentUser?.id
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-100 text-gray-900'
+                            ? 'bg-purple-600 text-white dark:bg-purple-500'
+                            : 'bg-gray-100 text-gray-900 dark:bg-muted dark:text-foreground'
                         }`}
                       >
                         <div className="text-sm mb-1">
                           <span className="font-medium">
                             {message.sender_id === currentUser?.id ? 'You' : message.sender_name}
                           </span>
-                          <span className="ml-2 opacity-75 text-xs">
+                          <span className={`ml-2 opacity-75 text-xs ${
+                            message.sender_id === currentUser?.id 
+                              ? 'text-purple-100' 
+                              : 'text-gray-500 dark:text-muted-foreground'
+                          }`}>
                             {new Date(message.created_at).toLocaleTimeString([], {
                               hour: '2-digit',
                               minute: '2-digit'
@@ -338,7 +342,7 @@ export default function MessagesPage() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center text-gray-500 py-8">
+                  <div className="text-center text-gray-500 dark:text-muted-foreground py-8">
                     <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No messages yet. Start the conversation!</p>
                   </div>
@@ -347,7 +351,7 @@ export default function MessagesPage() {
               </div>
               
               {/* Message Input */}
-              <div className="border-t p-4">
+              <div className="border-t dark:border-border p-4">
                 <div className="flex gap-2">
                   <Textarea
                     value={newMessage}
@@ -369,7 +373,7 @@ export default function MessagesPage() {
                     )}
                   </Button>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-500 dark:text-muted-foreground mt-2">
                   Press Enter to send, Shift+Enter for new line
                 </p>
               </div>
@@ -380,34 +384,34 @@ export default function MessagesPage() {
           <div>
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Project Details</CardTitle>
+                <CardTitle className="text-lg dark:text-white">Project Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Description</h4>
-                  <p className="text-sm text-gray-600">{project.description}</p>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Description</h4>
+                  <p className="text-sm text-gray-600 dark:text-muted-foreground">{project.description}</p>
                 </div>
                 
                 <div className="grid grid-cols-1 gap-3 text-sm">
                   {project.budget && (
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-gray-500" />
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-muted-foreground">
+                      <DollarSign className="h-4 w-4 text-gray-500 dark:text-muted-foreground" />
                       <span>Budget: ${project.budget}</span>
                     </div>
                   )}
                   
                   {project.deadline && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-gray-500" />
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-muted-foreground">
+                      <Calendar className="h-4 w-4 text-gray-500 dark:text-muted-foreground" />
                       <span>Due: {new Date(project.deadline).toLocaleDateString()}</span>
                     </div>
                   )}
                 </div>
 
                 {application && (
-                  <div className="pt-4 border-t">
-                    <h4 className="font-medium text-gray-900 mb-2">Application Details</h4>
-                    <div className="text-sm text-gray-600">
+                  <div className="pt-4 border-t dark:border-border">
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">Application Details</h4>
+                    <div className="text-sm text-gray-600 dark:text-muted-foreground">
                       <p>Editor: {application.editor_name}</p>
                       <p>Proposed Rate: ${application.proposed_rate}/hr</p>
                       <p>Status: {application.status}</p>
@@ -415,7 +419,7 @@ export default function MessagesPage() {
                   </div>
                 )}
                 
-                <div className="pt-4 border-t">
+                <div className="pt-4 border-t dark:border-border">
                   <Badge variant="outline" className="w-full justify-center">
                     Project Status: {project.status}
                   </Badge>

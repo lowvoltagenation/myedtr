@@ -55,14 +55,14 @@ async function ClientDashboardContent() {
   const totalApplications = projects?.reduce((acc, p) => acc + (p.project_applications?.length || 0), 0) || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Client Dashboard</h1>
-              <p className="text-gray-600">Manage your projects and find the perfect editors</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Client Dashboard</h1>
+              <p className="text-gray-600 dark:text-muted-foreground">Manage your projects and find the perfect editors</p>
             </div>
             <div className="flex flex-col md:flex-row gap-3">
               {/* Mobile: Upgrade Plan on top, full width */}
@@ -100,8 +100,8 @@ async function ClientDashboardContent() {
               <div className="flex items-center">
                 <Briefcase className="h-8 w-8 text-purple-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Active Projects</p>
-                  <p className="text-2xl font-bold text-gray-900">{activeProjects.length}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Active Projects</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{activeProjects.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -112,8 +112,8 @@ async function ClientDashboardContent() {
               <div className="flex items-center">
                 <Users className="h-8 w-8 text-blue-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Applications</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalApplications}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Applications</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalApplications}</p>
                 </div>
               </div>
             </CardContent>
@@ -124,8 +124,8 @@ async function ClientDashboardContent() {
               <div className="flex items-center">
                 <MessageCircle className="h-8 w-8 text-green-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Messages</p>
-                  <p className="text-2xl font-bold text-gray-900">0</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Messages</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">0</p>
                 </div>
               </div>
             </CardContent>
@@ -136,8 +136,8 @@ async function ClientDashboardContent() {
               <div className="flex items-center">
                 <Calendar className="h-8 w-8 text-orange-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Completed</p>
-                  <p className="text-2xl font-bold text-gray-900">{completedProjects.length}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Completed</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{completedProjects.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -149,14 +149,14 @@ async function ClientDashboardContent() {
           {/* Active Projects */}
           <Card>
             <CardHeader>
-              <CardTitle>Active Projects</CardTitle>
-              <CardDescription>Projects currently seeking editors</CardDescription>
+              <CardTitle className="dark:text-white">Active Projects</CardTitle>
+              <CardDescription className="dark:text-muted-foreground">Projects currently seeking editors</CardDescription>
             </CardHeader>
             <CardContent>
               {activeProjects.length === 0 ? (
                 <div className="text-center py-8">
-                  <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">No active projects</p>
+                  <Briefcase className="h-12 w-12 text-gray-400 dark:text-muted-foreground mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-muted-foreground mb-4">No active projects</p>
                   <Link href="/dashboard/client/post-project">
                     <Button>Post Your First Project</Button>
                   </Link>
@@ -164,19 +164,19 @@ async function ClientDashboardContent() {
               ) : (
                 <div className="space-y-4">
                   {activeProjects.slice(0, 3).map((project: any) => (
-                    <div key={project.id} className="border rounded-lg p-4">
+                    <div key={project.id} className="border dark:border-border rounded-lg p-4">
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-gray-900">{project.title}</h3>
-                        <span className="text-sm text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">{project.title}</h3>
+                        <span className="text-sm text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
                           {project.status}
                         </span>
                       </div>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{project.description}</p>
+                      <p className="text-gray-600 dark:text-muted-foreground text-sm mb-3 line-clamp-2">{project.description}</p>
                       <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-500">
+                        <span className="text-gray-500 dark:text-muted-foreground">
                           {project.project_applications?.length || 0} applications
                         </span>
-                        <span className="font-medium text-purple-600">
+                        <span className="font-medium text-purple-600 dark:text-purple-400">
                           ${project.budget}
                         </span>
                       </div>
@@ -195,15 +195,15 @@ async function ClientDashboardContent() {
           {/* Recent Applications */}
           <Card>
             <CardHeader>
-              <CardTitle>Recent Applications</CardTitle>
-              <CardDescription>Latest editor applications to your projects</CardDescription>
+              <CardTitle className="dark:text-white">Recent Applications</CardTitle>
+              <CardDescription className="dark:text-muted-foreground">Latest editor applications to your projects</CardDescription>
             </CardHeader>
             <CardContent>
               {totalApplications === 0 ? (
                 <div className="text-center py-8">
-                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2">No applications yet</p>
-                  <p className="text-sm text-gray-500">Post a project to start receiving applications</p>
+                  <Users className="h-12 w-12 text-gray-400 dark:text-muted-foreground mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-muted-foreground mb-2">No applications yet</p>
+                  <p className="text-sm text-gray-500 dark:text-muted-foreground">Post a project to start receiving applications</p>
                 </div>
               ) : (
                 <div className="space-y-4">

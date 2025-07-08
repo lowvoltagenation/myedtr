@@ -95,15 +95,15 @@ export function ApplicationCard({ application, project }: ApplicationCardProps) 
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-700';
-      case 'accepted': return 'bg-green-100 text-green-700';
-      case 'rejected': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'pending': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400';
+      case 'accepted': return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
+      case 'rejected': return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
+      default: return 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400';
     }
   };
 
   return (
-    <Card className="border rounded-lg">
+    <Card className="border dark:border-border rounded-lg">
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
           {/* Avatar */}
@@ -118,11 +118,11 @@ export function ApplicationCard({ application, project }: ApplicationCardProps) 
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start mb-2">
               <div>
-                <h4 className="font-medium text-gray-900 truncate">
+                <h4 className="font-medium text-gray-900 dark:text-white truncate">
                   {application.users.editor_profiles.name}
                 </h4>
-                <p className="text-sm text-gray-600">Applied to: {project.title}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm text-gray-600 dark:text-muted-foreground">Applied to: {project.title}</p>
+                <p className="text-xs text-gray-500 dark:text-muted-foreground">
                   {new Date(application.created_at).toLocaleDateString()}
                 </p>
               </div>
@@ -132,7 +132,7 @@ export function ApplicationCard({ application, project }: ApplicationCardProps) 
             </div>
 
             {/* Proposed Rate */}
-            <div className="flex items-center gap-1 text-sm text-gray-600 mb-3">
+            <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-muted-foreground mb-3">
               <DollarSign className="h-4 w-4" />
               <span>Proposed rate: ${application.proposed_rate}/hour</span>
             </div>
@@ -160,15 +160,15 @@ export function ApplicationCard({ application, project }: ApplicationCardProps) 
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle>Application from {application.users.editor_profiles.name}</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle className="dark:text-white">Application from {application.users.editor_profiles.name}</DialogTitle>
+                    <DialogDescription className="dark:text-muted-foreground">
                       Applied to "{project.title}" on {new Date(application.created_at).toLocaleDateString()}
                     </DialogDescription>
                   </DialogHeader>
                   
                   <div className="space-y-4">
                     {/* Editor Info */}
-                    <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-muted/20 rounded-lg">
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={application.users.editor_profiles.avatar_url} />
                         <AvatarFallback>
@@ -176,20 +176,20 @@ export function ApplicationCard({ application, project }: ApplicationCardProps) 
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h3 className="font-semibold">{application.users.editor_profiles.name}</h3>
-                        <p className="text-sm text-gray-600">{application.users.editor_profiles.bio}</p>
+                        <h3 className="font-semibold dark:text-white">{application.users.editor_profiles.name}</h3>
+                        <p className="text-sm text-gray-600 dark:text-muted-foreground">{application.users.editor_profiles.bio}</p>
                         <div className="flex items-center gap-1 mt-2">
-                          <DollarSign className="h-4 w-4" />
-                          <span className="text-sm font-medium">${application.proposed_rate}/hour</span>
+                          <DollarSign className="h-4 w-4 text-gray-600 dark:text-muted-foreground" />
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">${application.proposed_rate}/hour</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Cover Letter */}
                     <div>
-                      <h3 className="font-semibold mb-2">Cover Letter</h3>
-                      <div className="bg-white border rounded-lg p-4">
-                        <p className="text-gray-700 whitespace-pre-wrap">
+                      <h3 className="font-semibold mb-2 dark:text-white">Cover Letter</h3>
+                      <div className="bg-white dark:bg-card border dark:border-border rounded-lg p-4">
+                        <p className="text-gray-700 dark:text-muted-foreground whitespace-pre-wrap">
                           {application.cover_letter}
                         </p>
                       </div>

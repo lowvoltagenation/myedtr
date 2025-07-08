@@ -38,22 +38,21 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { TierBadge } from "@/components/ui/tier-badge";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useAuth, useAvatar, useAuthLoading } from "@/hooks/useAuth";
+import { useAuth, useAvatar } from "@/hooks/useAuth";
 
 // Create supabase client once outside component
 const supabase = createClient();
 
 export function Header() {
-  // Auth context - single source of truth
-  const { user, profile, isAuthenticated, isEditor, isClient } = useAuth();
-  const { authLoading, profileLoading, hydrated } = useAuthLoading();
-  const { avatarUrl, fallbackLetter, hasAvatar } = useAvatar();
+  // Auth context - simplified single source of truth
+  const { user, profile, isAuthenticated, isEditor, isClient, loading, hydrated } = useAuth();
+  const { avatarUrl, fallbackLetter, hasAvatar, retryAvatar } = useAvatar();
   
   // Local component state
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [avatarError, setAvatarError] = useState(false);
+  const [avatarError, setAvatarError] = useState(false); // Keep for now, will simplify further
   
   const router = useRouter();
   const pathname = usePathname();
@@ -166,7 +165,7 @@ export function Header() {
               {/* Theme Toggle */}
               <ThemeToggle />
               
-              {(authLoading || !hydrated) ? (
+              {(loading || !hydrated) ? (
                 <div className="flex items-center space-x-3">
                   <div className="w-16 h-8 bg-gray-200 dark:bg-muted rounded animate-pulse" />
                   <div className="w-12 h-8 bg-gray-200 dark:bg-muted rounded animate-pulse" />
@@ -192,14 +191,18 @@ export function Header() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
-                        {profileLoading ? (
+                        {loading ? (
                           <div className="h-8 w-8 bg-gray-200 dark:bg-muted rounded-full animate-pulse" />
                         ) : hasAvatar && !avatarError ? (
                           <img
                             src={avatarUrl!}
                             alt={profile?.name || user?.email || "User"}
                             className="h-8 w-8 rounded-full object-cover"
-                            onError={() => setAvatarError(true)}
+                            onError={() => {
+                              setAvatarError(true);
+                              // Automatically retry avatar loading
+                              setTimeout(() => retryAvatar(), 1000);
+                            }}
                             onLoad={() => setAvatarError(false)}
                           />
                         ) : (
@@ -214,13 +217,13 @@ export function Header() {
                         <div className="flex flex-col space-y-2">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-medium leading-none">
-                              {profileLoading ? (
+                              {loading ? (
                                 <span className="h-4 bg-gray-200 dark:bg-muted rounded w-20 block animate-pulse"></span>
                               ) : (
                                 profile?.name || user?.email?.split('@')[0] || "User"
                               )}
                             </p>
-                            {!subscription.loading && !profileLoading && (
+                            {!subscription.loading && !loading && (
                               <TierBadge tier={subscription.tier} size="sm" />
                             )}
                           </div>

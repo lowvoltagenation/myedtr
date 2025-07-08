@@ -208,14 +208,14 @@ export default function MessagesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded-lg"></div>
+                <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
               ))}
             </div>
           </div>
@@ -225,19 +225,19 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <Link 
             href={currentUser?.user_type === 'client' ? '/dashboard/client' : '/dashboard/editor'} 
-            className="inline-flex items-center text-purple-600 hover:text-purple-700 mb-4"
+            className="inline-flex items-center text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Messages</h1>
-          <p className="text-gray-600">Your active project conversations</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Messages</h1>
+          <p className="text-gray-600 dark:text-muted-foreground">Your active project conversations</p>
         </div>
 
         {/* Conversations List */}
@@ -245,12 +245,12 @@ export default function MessagesPage() {
           <div className="space-y-4">
             {conversations.map((conversation) => (
               <Link key={conversation.project_id} href={`/messages/${conversation.project_id}`}>
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <Card className="hover:shadow-lg dark:hover:shadow-2xl transition-shadow cursor-pointer">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-start justify-between mb-2">
-                          <h3 className="text-xl font-semibold text-gray-900">
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                             {conversation.project_title}
                           </h3>
                           <div className="flex gap-2">
@@ -272,21 +272,21 @@ export default function MessagesPage() {
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-muted-foreground mb-3">
                           <User className="h-4 w-4" />
                           <span>Conversation with {conversation.other_participant}</span>
                         </div>
                         
-                        <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                          <p className="text-sm text-gray-700 line-clamp-2">
+                        <div className="bg-gray-50 dark:bg-muted/20 rounded-lg p-3 mb-4">
+                          <p className="text-sm text-gray-700 dark:text-muted-foreground line-clamp-2">
                             <span className="font-medium">Last message:</span> {conversation.last_message}
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 dark:text-muted-foreground mt-1">
                             {new Date(conversation.last_message_time).toLocaleString()}
                           </p>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 dark:text-muted-foreground">
                           {conversation.budget && (
                             <div className="flex items-center gap-1">
                               <DollarSign className="h-4 w-4" />
@@ -317,11 +317,11 @@ export default function MessagesPage() {
         ) : (
           <Card>
             <CardContent className="text-center py-12">
-              <MessageCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <MessageCircle className="h-16 w-16 text-gray-400 dark:text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 No Conversations Yet
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-muted-foreground mb-4">
                 {currentUser?.user_type === 'client' 
                   ? "Once you accept an editor's application and they start messaging you, conversations will appear here."
                   : "Once your application gets accepted and you start messaging with clients, conversations will appear here."

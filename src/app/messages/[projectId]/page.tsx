@@ -118,8 +118,8 @@ export default function MessagesPage() {
             let senderAvatar = null;
             
             if (senderData?.user_type === 'editor') {
-              senderName = senderData?.editor_profiles?.name || 'Editor';
-              senderAvatar = senderData?.editor_profiles?.avatar_url || senderData?.avatar_url;
+              senderName = senderData?.editor_profiles?.[0]?.name || 'Editor';
+              senderAvatar = senderData?.editor_profiles?.[0]?.avatar_url || senderData?.avatar_url;
             } else if (senderData?.user_type === 'client') {
               senderName = senderData?.name || 'Client';
               senderAvatar = senderData?.avatar_url;
@@ -235,8 +235,8 @@ export default function MessagesPage() {
           let senderAvatar = null;
           
           if (msg.sender?.user_type === 'editor') {
-            senderName = msg.sender?.editor_profiles?.name || 'Editor';
-            senderAvatar = msg.sender?.editor_profiles?.avatar_url || msg.sender?.avatar_url;
+            senderName = msg.sender?.editor_profiles?.[0]?.name || 'Editor';
+            senderAvatar = msg.sender?.editor_profiles?.[0]?.avatar_url || msg.sender?.avatar_url;
           } else if (msg.sender?.user_type === 'client') {
             senderName = msg.sender?.name || 'Client';
             senderAvatar = msg.sender?.avatar_url;
@@ -316,13 +316,13 @@ export default function MessagesPage() {
       if (applicationData) {
         setApplication({
           ...applicationData,
-          editor_name: applicationData.editor?.editor_profiles?.name || 'Unknown Editor'
+          editor_name: applicationData.editor?.editor_profiles?.[0]?.name || 'Unknown Editor'
         });
       }
 
       // Determine other participant name
       if (profile?.user_type === 'client') {
-        setOtherParticipant(applicationData?.editor?.editor_profiles?.name || 'Editor');
+        setOtherParticipant(applicationData?.editor?.editor_profiles?.[0]?.name || 'Editor');
       } else {
         // Get client name from users table
         const { data: clientData, error: clientError } = await supabase
@@ -371,8 +371,8 @@ export default function MessagesPage() {
           });
           
           if (msg.sender?.user_type === 'editor') {
-            senderName = msg.sender?.editor_profiles?.name || 'Editor';
-            senderAvatar = msg.sender?.editor_profiles?.avatar_url || msg.sender?.avatar_url;
+            senderName = msg.sender?.editor_profiles?.[0]?.name || 'Editor';
+            senderAvatar = msg.sender?.editor_profiles?.[0]?.avatar_url || msg.sender?.avatar_url;
           } else if (msg.sender?.user_type === 'client') {
             senderName = msg.sender?.name || 'Client';
             senderAvatar = msg.sender?.avatar_url;

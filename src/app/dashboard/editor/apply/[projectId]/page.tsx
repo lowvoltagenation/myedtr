@@ -50,7 +50,7 @@ export default function ApplyToProjectPage() {
   const params = useParams();
   const projectId = params.projectId as string;
   const router = useRouter();
-  const { user, isAuthenticated, authLoading } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   
   const [project, setProject] = useState<Project | null>(null);
   const [editorProfile, setEditorProfile] = useState<EditorProfile | null>(null);

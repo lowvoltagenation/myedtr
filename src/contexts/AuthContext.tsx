@@ -125,17 +125,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Initialize auth state - single initialization
   const initializeAuth = useCallback(async () => {
+    console.log('🔧 AuthContext: Initializing auth...');
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
       
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log('🔧 AuthContext: Session result:', { session: !!session, error: !!sessionError });
       
       if (sessionError) {
         throw new Error(`Session error: ${sessionError.message}`);
       }
       
       if (session?.user) {
+        console.log('🔧 AuthContext: Loading profile for user:', session.user.id);
         const profile = await loadUserProfile(session.user);
+        console.log('🔧 AuthContext: Profile loaded:', { profile: !!profile });
         setState({
           user: session.user,
           profile,
@@ -144,6 +148,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           error: null,
         });
       } else {
+        console.log('🔧 AuthContext: No session, setting to unauthenticated state');
         setState({
           user: null,
           profile: null,
@@ -162,14 +167,63 @@ export function AuthProvider({ children }: AuthProviderProps) {
         error: error instanceof Error ? error.message : 'Authentication failed',
       });
     }
-  }, [loadUserProfile]);
+  }, []);
 
   // Setup auth listener - single listener
   useEffect(() => {
     let mounted = true;
     
+    const initAuth = async () => {
+      try {
+        setState(prev => ({ ...prev, loading: true, error: null }));
+        
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (sessionError) {
+          throw new Error(`Session error: ${sessionError.message}`);
+        }
+        
+        if (session?.user) {
+          const profile = await loadUserProfile(session.user);
+          
+          if (mounted) {
+            setState({
+              user: session.user,
+              profile,
+              loading: false,
+              hydrated: true,
+              error: null,
+            });
+          }
+        } else {
+          if (mounted) {
+            setState({
+              user: null,
+              profile: null,
+              loading: false,
+              hydrated: true,
+              error: null,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Auth initialization failed:', error);
+        if (mounted) {
+          setState({
+            user: null,
+            profile: null,
+            loading: false,
+            hydrated: true,
+            error: error instanceof Error ? error.message : 'Authentication failed',
+          });
+        }
+      }
+    };
+    
     // Initialize auth
-    initializeAuth();
+    initAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -180,29 +234,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
           if (session?.user) {
             setState(prev => ({ ...prev, loading: true, error: null }));
             const profile = await loadUserProfile(session.user);
-            setState({
-              user: session.user,
-              profile,
-              loading: false,
-              hydrated: true,
-              error: null,
-            });
+            if (mounted) {
+              setState({
+                user: session.user,
+                profile,
+                loading: false,
+                hydrated: true,
+                error: null,
+              });
+            }
           } else {
-            setState({
-              user: null,
-              profile: null,
-              loading: false,
-              hydrated: true,
-              error: null,
-            });
+            if (mounted) {
+              setState({
+                user: null,
+                profile: null,
+                loading: false,
+                hydrated: true,
+                error: null,
+              });
+            }
           }
         } catch (error) {
           console.error('Auth state change error:', error);
-          setState(prev => ({
-            ...prev,
-            loading: false,
-            error: error instanceof Error ? error.message : 'Authentication error',
-          }));
+          if (mounted) {
+            setState(prev => ({
+              ...prev,
+              loading: false,
+              error: error instanceof Error ? error.message : 'Authentication error',
+            }));
+          }
         }
       }
     );
@@ -211,7 +271,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [initializeAuth, loadUserProfile]);
+  }, []);
 
   // Utility functions
   const refreshProfile = useCallback(async () => {

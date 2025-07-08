@@ -48,6 +48,7 @@ export function Header() {
   const { user, profile, isAuthenticated, isEditor, isClient, loading, hydrated } = useAuth();
   const { avatarUrl, fallbackLetter, hasAvatar, retryAvatar } = useAvatar();
   
+  
   // Local component state
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

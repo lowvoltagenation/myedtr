@@ -84,7 +84,7 @@ async function EditorDashboardContent() {
             </div>
             <div className="flex flex-col md:flex-row gap-3">
               <Link href="/messages" className="hidden md:block">
-                <Button variant="outline" size="lg" className="w-full md:w-auto">
+                <Button variant="outline" size="lg" className="w-full md:w-auto border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700">
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Messages
                 </Button>
@@ -96,7 +96,7 @@ async function EditorDashboardContent() {
                 </Button>
               </Link>
               <Link href="/dashboard/editor/browse-projects" className="w-full md:w-auto">
-                <Button size="lg" className="w-full md:w-auto">
+                <Button size="lg" className="w-full md:w-auto border border-purple-600 dark:border-purple-500">
                   <Briefcase className="w-4 h-4 mr-2" />
                   Browse Projects
                 </Button>
@@ -107,7 +107,7 @@ async function EditorDashboardContent() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="border-gray-200 dark:border-gray-700">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <Briefcase className="h-8 w-8 text-purple-600 dark:text-purple-400" />
@@ -119,7 +119,7 @@ async function EditorDashboardContent() {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="border-gray-200 dark:border-gray-700">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <MessageCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
@@ -131,7 +131,7 @@ async function EditorDashboardContent() {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="border-gray-200 dark:border-gray-700">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
@@ -143,7 +143,7 @@ async function EditorDashboardContent() {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="border-gray-200 dark:border-gray-700">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <Settings className="h-8 w-8 text-orange-600 dark:text-orange-400" />
@@ -159,7 +159,7 @@ async function EditorDashboardContent() {
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Overview */}
-          <Card>
+          <Card className="border-gray-200 dark:border-gray-700">
             <CardHeader>
               <CardTitle className="dark:text-white">Your Profile</CardTitle>
               <CardDescription className="dark:text-muted-foreground">Manage your editor profile and portfolio</CardDescription>
@@ -198,13 +198,13 @@ async function EditorDashboardContent() {
                   )}
                 </div>
                 <div className="pt-4 space-y-2">
-                  <Link href="/dashboard/editor/edit-profile">
-                    <Button variant="outline" className="w-full">
+                  <Link href="/profile/edit">
+                    <Button variant="outline" className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700">
                       Edit Profile
                     </Button>
                   </Link>
                   <Link href={`/editor/${profile.id}`}>
-                    <Button variant="ghost" className="w-full">
+                    <Button variant="ghost" className="w-full dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white">
                       View Public Profile
                     </Button>
                   </Link>
@@ -214,7 +214,7 @@ async function EditorDashboardContent() {
           </Card>
 
           {/* Available Projects */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 border-gray-200 dark:border-gray-700">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -222,7 +222,7 @@ async function EditorDashboardContent() {
                   <CardDescription className="dark:text-muted-foreground">Browse and apply to new projects</CardDescription>
                 </div>
                 <Link href="/dashboard/editor/browse-projects">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700">
                     View All
                   </Button>
                 </Link>
@@ -232,7 +232,7 @@ async function EditorDashboardContent() {
               {availableProjects && availableProjects.length > 0 ? (
                 <div className="space-y-4">
                   {availableProjects.slice(0, 3).map((project) => (
-                    <div key={project.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:border-border dark:hover:bg-muted/20 transition-colors">
+                    <div key={project.id} className="border-2 border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-muted/20 transition-colors">
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="font-semibold text-gray-900 dark:text-white">{project.title}</h3>
                         <div className="flex gap-2">
@@ -265,7 +265,7 @@ async function EditorDashboardContent() {
                           )}
                         </div>
                         <Link href={`/dashboard/editor/apply/${project.id}`}>
-                          <Button size="sm">
+                          <Button size="sm" className="border border-purple-600 dark:border-purple-500">
                             Apply Now
                           </Button>
                         </Link>
@@ -286,7 +286,7 @@ async function EditorDashboardContent() {
 
         {/* Recent Applications */}
         {applications && applications.length > 0 && (
-          <Card className="mt-8">
+          <Card className="mt-8 border-gray-200 dark:border-gray-700">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -294,7 +294,7 @@ async function EditorDashboardContent() {
                   <CardDescription className="dark:text-muted-foreground">Track your project applications</CardDescription>
                 </div>
                 <Link href="/dashboard/editor/applications">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700">
                     View All
                   </Button>
                 </Link>
@@ -303,7 +303,7 @@ async function EditorDashboardContent() {
             <CardContent>
               <div className="space-y-4">
                 {applications.slice(0, 5).map((application) => (
-                  <div key={application.id} className="flex items-center justify-between p-4 border rounded-lg dark:border-border">
+                  <div key={application.id} className="flex items-center justify-between p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-muted/20 transition-colors">
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900 dark:text-white">{application.projects?.title}</h3>
                       <p className="text-gray-600 dark:text-muted-foreground text-sm line-clamp-1">{application.projects?.description}</p>
@@ -328,7 +328,7 @@ async function EditorDashboardContent() {
                       </Badge>
                       {application.status === 'accepted' && (
                         <Link href={`/project/${application.project_id}`}>
-                          <Button size="sm">
+                          <Button size="sm" className="border border-purple-600 dark:border-purple-500">
                             View Project
                           </Button>
                         </Link>

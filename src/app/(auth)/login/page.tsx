@@ -7,12 +7,6 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">M</span>
-            </div>
-            <span className="text-2xl font-bold gradient-text">MyEdtr</span>
-          </Link>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome back</h1>
           <p className="text-gray-600 dark:text-muted-foreground">Sign in to your account to continue</p>
         </div>

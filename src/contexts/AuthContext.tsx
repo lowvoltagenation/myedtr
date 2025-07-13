@@ -185,18 +185,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         try {
           if (session?.user) {
-            console.log('🔧 AuthContext: Auth change - loading profile');
-            setState(prev => ({ ...prev, loading: true }));
-            const profile = await loadUserProfile(session.user);
+            // Only reload profile if user changed or we don't have one
+            const userChanged = state.user?.id !== session.user.id;
+            const needsProfile = !state.profile;
             
-            if (mounted) {
-              setState({
+            if (userChanged || needsProfile) {
+              console.log('🔧 AuthContext: Auth change - loading profile');
+              setState(prev => ({ ...prev, loading: true }));
+              const profile = await loadUserProfile(session.user);
+              
+              if (mounted) {
+                setState({
+                  user: session.user,
+                  profile,
+                  loading: false,
+                  hydrated: true,
+                  error: null,
+                });
+              }
+            } else {
+              // Just update user without loading state
+              console.log('🔧 AuthContext: Auth change - updating user only');
+              setState(prev => ({
+                ...prev,
                 user: session.user,
-                profile,
-                loading: false,
                 hydrated: true,
                 error: null,
-              });
+              }));
             }
           } else {
             console.log('🔧 AuthContext: Auth change - clearing state');

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
@@ -50,6 +50,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     hydrated: false,
     error: null,
   });
+  
+  // Use ref to track current state for closures
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   // Simplified profile loading
   const loadUserProfile = useCallback(async (user: User): Promise<UserProfile | null> => {
@@ -185,9 +189,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         try {
           if (session?.user) {
-            // Only reload profile if user changed or we don't have one
-            const userChanged = state.user?.id !== session.user.id;
-            const needsProfile = !state.profile;
+            // Use ref to get current state
+            const currentState = stateRef.current;
+            const userChanged = currentState.user?.id !== session.user.id;
+            const needsProfile = !currentState.profile;
             
             if (userChanged || needsProfile) {
               console.log('🔧 AuthContext: Auth change - loading profile');

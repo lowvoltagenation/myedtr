@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -39,9 +38,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { TierBadge } from "@/components/ui/tier-badge";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth, useAvatar } from "@/hooks/useAuth";
-
-// Create supabase client once outside component
-const supabase = createClient();
+import { createClient } from "@/lib/supabase/client";
 
 export function Header() {
   // Auth context - simplified single source of truth
@@ -67,6 +64,7 @@ export function Header() {
   }, []);
 
   const handleSignOut = async () => {
+    const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/');
   };

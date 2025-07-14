@@ -386,11 +386,9 @@ export default function StripeTestPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Pro Plan:</span>
                   <div className="flex items-center space-x-2">
-                    <span className={`w-3 h-3 rounded-full ${
-                      stripeConfig.plans.pro.hasPriceId ? 'bg-green-500' : 'bg-red-500'
-                    }`}></span>
+                    <span className="w-3 h-3 rounded-full bg-green-500"></span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      ${stripeConfig.plans.pro.amount / 100}
+                      {stripeConfig.plans.pro.displayPrice || `$${stripeConfig.plans.pro.amount / 100}`}
                     </span>
                   </div>
                 </div>
@@ -398,21 +396,19 @@ export default function StripeTestPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Featured Plan:</span>
                   <div className="flex items-center space-x-2">
-                    <span className={`w-3 h-3 rounded-full ${
-                      stripeConfig.plans.featured.hasPriceId ? 'bg-green-500' : 'bg-red-500'
-                    }`}></span>
+                    <span className="w-3 h-3 rounded-full bg-green-500"></span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      ${stripeConfig.plans.featured.amount / 100}
+                      {stripeConfig.plans.featured.displayPrice || `$${stripeConfig.plans.featured.amount / 100}`}
                     </span>
                   </div>
                 </div>
                 
                 {user && (
                   <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded text-xs">
-                    <div className="font-medium text-gray-700 dark:text-gray-300 mb-1">Price IDs:</div>
+                    <div className="font-medium text-gray-700 dark:text-gray-300 mb-1">Plan Details:</div>
                     <div className="space-y-1 text-gray-600 dark:text-gray-400">
-                      <div>Pro: {stripeConfig.plans.pro.priceId}</div>
-                      <div>Featured: {stripeConfig.plans.featured.priceId}</div>
+                      <div>Pro: {stripeConfig.plans.pro.name} - {stripeConfig.plans.pro.description}</div>
+                      <div>Featured: {stripeConfig.plans.featured.name} - {stripeConfig.plans.featured.description}</div>
                     </div>
                   </div>
                 )}
@@ -433,13 +429,10 @@ export default function StripeTestPage() {
                     {!stripeConfig.hasWebhookSecret && (
                       <li>Missing {stripeConfig.mode.toUpperCase()} webhook secret</li>
                     )}
-                    {!stripeConfig.plans.pro.hasPriceId && (
-                      <li>Missing Pro plan price ID</li>
-                    )}
-                    {!stripeConfig.plans.featured.hasPriceId && (
-                      <li>Missing Featured plan price ID</li>
-                    )}
                   </ul>
+                  <div className="mt-2 text-green-600 dark:text-green-400">
+                    ✅ Using modern price_data approach - No price IDs needed!
+                  </div>
                 </div>
               </div>
             )}

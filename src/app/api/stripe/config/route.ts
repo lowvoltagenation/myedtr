@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getStripeInfo, STRIPE_CONFIG } from '@/lib/stripe/config';
+import { getStripeInfo } from '@/lib/stripe/config';
 import { createServerClient } from '@supabase/ssr';
+
+// Plan configurations (same as in service.ts)
+const PLAN_CONFIG = {
+  pro: {
+    name: 'MyEdtr Pro',
+    description: 'Core professional features for serious editors',
+    amount: 2900, // $29.00 in cents
+  },
+  featured: {
+    name: 'MyEdtr Featured', 
+    description: 'Premium tier with maximum visibility and features',
+    amount: 5900, // $59.00 in cents
+  }
+} as const;
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,26 +38,30 @@ export async function GET(request: NextRequest) {
     
     const stripeInfo = getStripeInfo();
     
-    // Return configuration info (sanitized for security)
+    // Return configuration info using modern approach
     const configInfo = {
       mode: stripeInfo.mode,
       isConfigured: stripeInfo.isConfigured,
       hasSecretKey: stripeInfo.hasSecretKey,
       hasPublishableKey: stripeInfo.hasPublishableKey,
       hasWebhookSecret: stripeInfo.hasWebhookSecret,
+      usesPriceData: true, // Modern approach
+      requiresPriceIds: false, // No longer needed
       plans: {
         pro: {
-          hasPriceId: !!STRIPE_CONFIG.plans.pro.priceId,
-          priceId: user ? STRIPE_CONFIG.plans.pro.priceId : '[HIDDEN]', // Only show to authenticated users
-          amount: STRIPE_CONFIG.plans.pro.amount,
+          name: PLAN_CONFIG.pro.name,
+          description: PLAN_CONFIG.pro.description,
+          amount: PLAN_CONFIG.pro.amount,
+          displayPrice: `$${(PLAN_CONFIG.pro.amount / 100).toFixed(2)}`,
         },
         featured: {
-          hasPriceId: !!STRIPE_CONFIG.plans.featured.priceId,
-          priceId: user ? STRIPE_CONFIG.plans.featured.priceId : '[HIDDEN]',
-          amount: STRIPE_CONFIG.plans.featured.amount,
+          name: PLAN_CONFIG.featured.name,
+          description: PLAN_CONFIG.featured.description,
+          amount: PLAN_CONFIG.featured.amount,
+          displayPrice: `$${(PLAN_CONFIG.featured.amount / 100).toFixed(2)}`,
         },
       },
-      currency: STRIPE_CONFIG.currency,
+      currency: 'usd', // Fixed currency
     };
 
     return NextResponse.json(configInfo);

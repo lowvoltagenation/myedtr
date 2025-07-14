@@ -23,6 +23,7 @@ export const getStripe = () => {
       throw new Error(`Missing NEXT_PUBLIC_STRIPE_${mode.toUpperCase()}_PUBLISHABLE_KEY environment variable`);
     }
     
+    console.log(`🔄 Initializing Stripe in ${STRIPE_MODE} mode`);
     stripePromise = loadStripe(publishableKey);
   }
   
@@ -35,4 +36,12 @@ export const getStripeMode = (): 'test' | 'live' => STRIPE_MODE;
 // Utility function to check if client-side Stripe is configured
 export const isStripeConfigured = (): boolean => {
   return !!getPublishableKey();
-}; 
+};
+
+// Utility function to get configuration info
+export const getStripeClientInfo = () => ({
+  mode: STRIPE_MODE,
+  isConfigured: isStripeConfigured(),
+  hasPublishableKey: !!getPublishableKey(),
+  usesPriceData: true, // Modern approach doesn't need pre-created price IDs
+}); 

@@ -58,6 +58,17 @@ export function Header() {
   // Add subscription hook (keep existing integration)
   const subscription = useSubscription(user?.id);
 
+  // Auto-refresh subscription data when payment success is detected
+  useEffect(() => {
+    if (typeof window !== 'undefined' && user?.id && subscription.refreshTier) {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('success') === 'true') {
+        console.log('🔄 Header: Refreshing subscription after payment success...');
+        subscription.refreshTier().catch(console.error);
+      }
+    }
+  }, [user?.id, subscription.refreshTier]);
+
   // Handle theme hydration
   useEffect(() => {
     setMounted(true);

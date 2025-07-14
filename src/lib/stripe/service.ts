@@ -4,6 +4,20 @@ import { Database } from '@/types/database';
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
+// Plan configurations using modern inline pricing
+const PLAN_CONFIG = {
+  pro: {
+    name: 'MyEdtr Pro',
+    description: 'Core professional features for serious editors',
+    amount: 2900, // $29.00 in cents
+  },
+  featured: {
+    name: 'MyEdtr Featured', 
+    description: 'Premium tier with maximum visibility and features',
+    amount: 5900, // $59.00 in cents
+  }
+} as const;
+
 export class StripeService {
   private supabase: SupabaseClient;
 
@@ -57,7 +71,7 @@ export class StripeService {
   }
 
   /**
-   * Create a checkout session for subscription
+   * Create a checkout session for subscription using modern price_data approach
    */
   async createCheckoutSession(
     userId: string,
@@ -72,15 +86,15 @@ export class StripeService {
     }
 
     const customerId = await this.getOrCreateCustomer(userId, email, name);
-    const priceId = STRIPE_CONFIG.plans[plan].priceId;
+    const planConfig = PLAN_CONFIG[plan];
 
-    if (!priceId) {
-      throw new Error(`Missing price ID for ${plan} plan in ${STRIPE_MODE} mode`);
+    if (!planConfig) {
+      throw new Error(`Invalid plan: ${plan}`);
     }
 
     console.log(`Creating checkout session in ${STRIPE_MODE} mode:`, {
       plan,
-      priceId,
+      planConfig,
       customerId
     });
 
@@ -90,7 +104,17 @@ export class StripeService {
       payment_method_types: ['card'],
       line_items: [
         {
-          price: priceId,
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: planConfig.name,
+              description: planConfig.description,
+            },
+            unit_amount: planConfig.amount,
+            recurring: {
+              interval: 'month',
+            },
+          },
           quantity: 1,
         },
       ],
@@ -108,12 +132,17 @@ export class StripeService {
           stripe_mode: STRIPE_MODE,
         },
       },
+      // Allow promotion codes for discounts
+      allow_promotion_codes: true,
+      // Set billing address collection
+      billing_address_collection: 'required',
     });
 
     if (!session.url) {
       throw new Error('Failed to create checkout session');
     }
 
+    console.log(`✅ Checkout session created successfully in ${STRIPE_MODE} mode:`, session.id);
     return session.url;
   }
 
@@ -303,7 +332,8 @@ export class StripeService {
       mode: STRIPE_MODE,
       isConfigured: isStripeConfigured(),
       hasStripeInstance: !!stripe,
-      config: STRIPE_CONFIG
+      planConfig: PLAN_CONFIG,
+      usesPriceData: true, // Indicates we're using modern approach
     };
   }
 } 

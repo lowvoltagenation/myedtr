@@ -9,13 +9,15 @@ const getStripeKeys = () => {
   if (STRIPE_MODE === 'live') {
     return {
       secretKey: process.env.STRIPE_LIVE_SECRET_KEY,
-      publishableKey: process.env.NEXT_PUBLIC_STRIPE_LIVE_PUBLISHABLE_KEY,
+      publishableKey: process.env.STRIPE_LIVE_PUBLISHABLE_KEY,
+      clientPublishableKey: process.env.NEXT_PUBLIC_STRIPE_LIVE_PUBLISHABLE_KEY,
       webhookSecret: process.env.STRIPE_LIVE_WEBHOOK_SECRET,
     };
   } else {
     return {
       secretKey: process.env.STRIPE_TEST_SECRET_KEY,
-      publishableKey: process.env.NEXT_PUBLIC_STRIPE_TEST_PUBLISHABLE_KEY,
+      publishableKey: process.env.STRIPE_TEST_PUBLISHABLE_KEY,
+      clientPublishableKey: process.env.NEXT_PUBLIC_STRIPE_TEST_PUBLISHABLE_KEY,
       webhookSecret: process.env.STRIPE_TEST_WEBHOOK_SECRET,
     };
   }
@@ -34,31 +36,18 @@ export const stripe = stripeKeys.secretKey
 // Export the current publishable key for client-side usage  
 export const STRIPE_PUBLISHABLE_KEY = stripeKeys.publishableKey;
 
-// Stripe configuration
+// Modern Stripe configuration - no longer requires pre-created price IDs
 export const STRIPE_CONFIG = {
   mode: STRIPE_MODE,
   currency: 'usd',
-  plans: {
-    pro: {
-      // Use mode-specific price IDs if available, fallback to generic ones
-      priceId: STRIPE_MODE === 'live' 
-        ? (process.env.STRIPE_LIVE_PRO_PRICE_ID || process.env.STRIPE_PRO_PRICE_ID || '')
-        : (process.env.STRIPE_TEST_PRO_PRICE_ID || process.env.STRIPE_PRO_PRICE_ID || ''),
-      amount: 2900, // $29.00 in cents
-    },
-    featured: {
-      priceId: STRIPE_MODE === 'live'
-        ? (process.env.STRIPE_LIVE_FEATURED_PRICE_ID || process.env.STRIPE_FEATURED_PRICE_ID || '')
-        : (process.env.STRIPE_TEST_FEATURED_PRICE_ID || process.env.STRIPE_FEATURED_PRICE_ID || ''),
-      amount: 5900, // $59.00 in cents
-    },
-  },
   webhookSecret: stripeKeys.webhookSecret || '',
+  // Modern approach: Plans are defined inline using price_data
+  // See StripeService for plan configurations
 } as const;
 
 // Utility function to check if Stripe is properly configured
 export const isStripeConfigured = (): boolean => {
-  return !!(stripeKeys.secretKey && stripeKeys.publishableKey);
+  return !!(stripeKeys.secretKey && stripeKeys.clientPublishableKey);
 };
 
 // Utility function to get current mode info
@@ -67,7 +56,9 @@ export const getStripeInfo = () => ({
   isConfigured: isStripeConfigured(),
   hasSecretKey: !!stripeKeys.secretKey,
   hasPublishableKey: !!stripeKeys.publishableKey,
+  hasClientPublishableKey: !!stripeKeys.clientPublishableKey,
   hasWebhookSecret: !!stripeKeys.webhookSecret,
+  requiresPriceIds: false, // Modern approach doesn't need pre-created price IDs
 });
 
 // Type definitions

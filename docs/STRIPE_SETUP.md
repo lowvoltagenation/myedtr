@@ -1,285 +1,227 @@
-# Stripe Setup Guide for MyEdtr Phase 2
+# Stripe Setup Guide
 
-This guide covers setting up Stripe for both test and live modes in your application.
+This guide explains how to configure Stripe payments for MyEdtr using the modern `price_data` approach.
 
-## 🔧 Environment Variables Required
+## Modern Approach: No Manual Product Setup Required
 
-Add these environment variables to your `.env.local` file:
+MyEdtr now uses Stripe's modern `price_data` approach, which means:
 
-```bash
-# Stripe Keys
-STRIPE_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+- ✅ **No need to create products in Stripe dashboard**
+- ✅ **No price ID environment variables required**
+- ✅ **Pricing is defined inline using `price_data`**
+- ✅ **Easier to maintain and update**
+- ✅ **Works seamlessly in both test and live modes**
 
-# Stripe Price IDs (create these in Stripe Dashboard)
-STRIPE_PRO_PRICE_ID=price_...
-STRIPE_FEATURED_PRICE_ID=price_...
-```
+## Plan Configuration
 
-## 📋 Stripe Dashboard Setup
+The subscription plans are defined in the codebase:
 
-### 1. Create Products and Prices
-
-#### Pro Plan ($29/month)
-```
-Product Name: "MyEdtr Pro"
-Description: "Core professional features for serious editors"
-Price: $29.00 USD / month
-Price ID: Copy this to STRIPE_PRO_PRICE_ID
-```
-
-#### Featured Plan ($59/month)  
-```
-Product Name: "MyEdtr Featured"
-Description: "Premium tier with maximum visibility and features"
-Price: $59.00 USD / month
-Price ID: Copy this to STRIPE_FEATURED_PRICE_ID
-```
-
-### 2. Configure Webhooks
-
-Add webhook endpoint: `https://your-domain.com/api/stripe/webhooks`
-
-**Events to listen for:**
-- `customer.subscription.created`
-- `customer.subscription.updated`
-- `customer.subscription.deleted`
-- `invoice.payment_succeeded`
-- `invoice.payment_failed`
-
-Copy the webhook signing secret to `STRIPE_WEBHOOK_SECRET`.
-
-### 3. Enable Customer Portal
-
-Configure the Customer Portal in Stripe Dashboard:
-- Enable subscription management
-- Enable payment method updates
-- Set return URL to your settings page
-
-## 🔗 Integration Points
-
-### Checkout Flow
-- User clicks "Get Started" on pricing page
-- Creates Stripe Checkout session via `/api/stripe/create-checkout-session`
-- Redirects to Stripe-hosted checkout
-- Handles success/cancel redirects back to pricing page
-
-### Subscription Management
-- "Manage Subscription" buttons redirect to Stripe Customer Portal
-- Portal handles plan changes, payment methods, billing history
-- Webhooks keep database in sync with Stripe
-
-### Database Sync
-- Webhooks update `subscriptions` table with Stripe data
-- `users.current_tier_id` updated based on subscription status
-- Usage limits enforced based on active tier
-
-## 🧪 Testing
-
-### Test Card Numbers
-- Success: `4242424242424242`
-- Declined: `4000000000000002`
-- 3D Secure: `4000002500003155`
-
-### Test Workflow
-1. Use test Stripe keys in development
-2. Create test subscriptions with test cards
-3. Verify webhook events in Stripe Dashboard
-4. Check database updates in Supabase
-5. Test subscription management flows
-
-## 🚀 Phase 2 Implementation Status
-
-### ✅ Completed Infrastructure
-- [x] Stripe configuration setup (`src/lib/stripe/config.ts`)
-- [x] Client-side Stripe integration (`src/lib/stripe/client.ts`)
-- [x] Stripe service layer (`src/lib/stripe/service.ts`)
-- [x] API endpoints for checkout and portal sessions
-- [x] Webhook handling for subscription events
-- [x] Updated pricing page with Stripe integration
-- [x] React hooks for Stripe operations (`src/hooks/useStripe.ts`)
-
-### 🔄 Next Steps
-1. **Configure Stripe Account**: Set up products, prices, and webhooks
-2. **Add Environment Variables**: Configure all required Stripe keys
-3. **Test Payment Flow**: Verify end-to-end subscription process
-4. **Deploy Webhooks**: Ensure webhook endpoint is accessible
-5. **Test Database Sync**: Confirm subscription data updates correctly
-
-### 🎯 Success Criteria
-- [ ] Users can subscribe to Pro and Featured plans
-- [ ] Subscription status syncs between Stripe and database
-- [ ] Users can manage subscriptions via Customer Portal
-- [ ] Feature access updates based on subscription tier
-- [ ] Failed payments and cancellations handled gracefully
-
----
-
-**Ready for testing once Stripe account is configured!** 🚀
+- **MyEdtr Pro**: $29/month - Core professional features for serious editors
+- **MyEdtr Featured**: $59/month - Premium tier with maximum visibility and features
 
 ## Environment Variables
 
-### Stripe Mode Selection
+### Required Variables
 
-Set the Stripe mode using the `STRIPE_MODE` environment variable:
+You need to set these environment variables in your `.env.local` file:
 
+#### For Test Mode (Default)
 ```bash
-# Use test mode (default)
+# Stripe Configuration
 STRIPE_MODE=test
 
-# Use live mode
-STRIPE_MODE=live
-```
-
-### Test Mode Keys
-
-For development and testing, set up your test mode keys:
-
-```bash
 # Test mode keys
 STRIPE_TEST_SECRET_KEY=sk_test_...
+STRIPE_TEST_PUBLISHABLE_KEY=pk_test_...
 NEXT_PUBLIC_STRIPE_TEST_PUBLISHABLE_KEY=pk_test_...
 STRIPE_TEST_WEBHOOK_SECRET=whsec_...
-
-# Test mode plan price IDs (optional, will fallback to generic ones)
-STRIPE_TEST_PRO_PRICE_ID=price_...
-STRIPE_TEST_FEATURED_PRICE_ID=price_...
 ```
 
-### Live Mode Keys
-
-For production, set up your live mode keys:
-
+#### For Live Mode (Production)
 ```bash
+# Stripe Configuration
+STRIPE_MODE=live
+
 # Live mode keys
 STRIPE_LIVE_SECRET_KEY=sk_live_...
+STRIPE_LIVE_PUBLISHABLE_KEY=pk_live_...
 NEXT_PUBLIC_STRIPE_LIVE_PUBLISHABLE_KEY=pk_live_...
 STRIPE_LIVE_WEBHOOK_SECRET=whsec_...
-
-# Live mode plan price IDs (optional, will fallback to generic ones)
-STRIPE_LIVE_PRO_PRICE_ID=price_...
-STRIPE_LIVE_FEATURED_PRICE_ID=price_...
 ```
 
-### Fallback Keys (Optional)
+## Getting Your Stripe Keys
 
-You can also set generic keys that will be used as fallbacks:
+### 1. Go to Stripe Dashboard
+
+- **Test Mode**: https://dashboard.stripe.com/test/apikeys
+- **Live Mode**: https://dashboard.stripe.com/apikeys
+
+### 2. Copy Your Keys
+
+1. **Publishable Key**: Starts with `pk_test_` or `pk_live_`
+2. **Secret Key**: Starts with `sk_test_` or `sk_live_`
+
+### 3. Set Up Webhooks
+
+1. Go to https://dashboard.stripe.com/test/webhooks (or live version)
+2. Create a new webhook endpoint
+3. Set the endpoint URL to: `https://your-domain.com/api/stripe/webhooks`
+4. Select the following events:
+   - `customer.subscription.created`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+   - `invoice.payment_succeeded`
+   - `invoice.payment_failed`
+5. Copy the webhook secret (starts with `whsec_`)
+
+## Mode Switching
+
+### Development Environment
+
+Use the provided scripts to switch between test and live modes:
 
 ```bash
-# Generic keys (used as fallback if mode-specific keys are not available)
-STRIPE_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+# Switch to test mode
+npm run stripe:test
 
-# Generic plan price IDs
-STRIPE_PRO_PRICE_ID=price_...
-STRIPE_FEATURED_PRICE_ID=price_...
+# Switch to live mode (use with caution)
+npm run stripe:live
+
+# Check current mode
+npm run stripe:status
 ```
 
-## How It Works
+### Production Environment
 
-1. **Mode Detection**: The system checks the `STRIPE_MODE` environment variable (defaults to "test")
-2. **Key Selection**: Based on the mode, it selects the appropriate keys:
-   - Test mode: Uses `STRIPE_TEST_*` keys
-   - Live mode: Uses `STRIPE_LIVE_*` keys
-3. **Fallback**: If mode-specific keys are not found, it falls back to generic `STRIPE_*` keys
-4. **Validation**: The system validates that all required keys are present before initializing
+Set the `STRIPE_MODE` environment variable:
 
-## Configuration Status
-
-You can check your Stripe configuration status by:
-
-1. **API Endpoint**: Visit `/api/stripe/config` to see configuration details
-2. **Test Page**: Visit `/test-stripe` to see a visual configuration dashboard
-
-## Switching Between Modes
-
-### Development
 ```bash
-# Test with test keys
-STRIPE_MODE=test npm run dev
+# For test mode (safe for staging)
+STRIPE_MODE=test
 
-# Test with live keys (be careful!)
-STRIPE_MODE=live npm run dev
-```
-
-### Production
-```bash
-# Always use live mode in production
+# For live mode (production only)
 STRIPE_MODE=live
 ```
 
-## Security Best Practices
+## Testing
 
-1. **Never commit real keys** to version control
-2. **Use different webhook endpoints** for test and live modes
-3. **Test thoroughly** in test mode before switching to live
-4. **Monitor webhook logs** to ensure proper event handling
-5. **Use environment-specific** price IDs for different plans
+### Test Cards
 
-## Webhook Setup
+Use these test card numbers in test mode:
 
-Set up separate webhook endpoints for test and live modes:
+- **Success**: `4242424242424242`
+- **Declined**: `4000000000000002`
+- **Requires 3D Secure**: `4000002500003155`
 
-### Test Mode Webhook
-- URL: `https://your-domain.com/api/stripe/webhooks`
-- Events: `customer.subscription.*`, `invoice.payment_*`
-- Use `STRIPE_TEST_WEBHOOK_SECRET`
+### Testing Webhooks
 
-### Live Mode Webhook
-- URL: `https://your-domain.com/api/stripe/webhooks` (same endpoint)
-- Events: `customer.subscription.*`, `invoice.payment_*`
-- Use `STRIPE_LIVE_WEBHOOK_SECRET`
+Use Stripe CLI to test webhooks locally:
 
-## Troubleshooting
+```bash
+# Install Stripe CLI
+npm install -g stripe-cli
+
+# Login to Stripe
+stripe login
+
+# Forward webhooks to local server
+stripe listen --forward-to localhost:3000/api/stripe/webhooks
+```
+
+### Manual Sync (Development)
+
+In test mode, webhooks may not be automatically triggered. MyEdtr includes a manual sync feature:
+
+1. **Automatic sync**: After successful payments, subscription data refreshes automatically
+2. **Manual sync button**: If status doesn't update, use the "Refresh Status" button
+3. **Sync API**: Call `POST /api/stripe/sync-subscription` to manually sync with Stripe
+4. **Debug mode**: Development builds show webhook status and sync options
+
+### Common Development Issues
+
+#### Subscription Status Not Updating
+
+**Cause**: Webhooks not triggered in test mode
+
+**Solutions**:
+1. **Use manual sync**: Click "Refresh Status" after payment
+2. **Set up webhook forwarding**: Use Stripe CLI (see above)
+3. **Check debug info**: Development mode shows sync status
+4. **API sync**: Call the sync endpoint directly
+
+#### Test Mode Payments
+
+**Cause**: Real webhooks aren't sent in test mode without forwarding
+
+**Solutions**:
+1. **Stripe CLI forwarding**: Recommended for webhook testing
+2. **Manual refresh**: Use built-in sync functionality
+3. **Database check**: Verify subscription records directly
+
+## Debugging
+
+### Debug Tools
+
+1. **Debug Page**: Visit `/debug-stripe` to check your configuration
+2. **API Endpoint**: Call `/api/stripe/debug` to get configuration status
+3. **Pricing Page**: Debug component shows current mode (development only)
 
 ### Common Issues
 
-1. **"Stripe not initialized" error**
-   - Check that your mode-specific keys are set correctly
-   - Verify the `STRIPE_MODE` environment variable
+1. **"Stripe not initialized"**: Missing environment variables
+2. **"Invalid plan"**: Plan not found in configuration
+3. **"No Stripe customer found"**: User doesn't have a subscription record
 
-2. **"Missing price ID" error**
-   - Ensure you have price IDs set for your current mode
-   - Check both mode-specific and generic price ID variables
+### Verification Checklist
 
-3. **Webhook signature verification failed**
-   - Verify you're using the correct webhook secret for your mode
-   - Ensure the webhook secret matches your Stripe dashboard
+- [ ] Environment variables are set for current mode
+- [ ] Publishable keys start with `pk_test_` or `pk_live_`
+- [ ] Secret keys start with `sk_test_` or `sk_live_`
+- [ ] Webhook secret starts with `whsec_`
+- [ ] Webhook endpoint is configured in Stripe dashboard
+- [ ] Required webhook events are selected
+- [ ] Application restarted after environment changes
 
-### Debug Information
+## Security Notes
 
-The application logs include mode information to help with debugging:
-- All Stripe operations log the current mode
-- Webhook events include mode tracking in metadata
-- Configuration status is available via the API endpoint
+### Production Deployment
 
-## Environment Variable Summary
+1. **Never commit API keys to version control**
+2. **Use environment variables for all sensitive data**
+3. **Test thoroughly in test mode before going live**
+4. **Monitor webhooks for delivery failures**
+5. **Set up proper error handling and logging**
 
-### Required for Test Mode
-```bash
-STRIPE_MODE=test
-STRIPE_TEST_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_STRIPE_TEST_PUBLISHABLE_KEY=pk_test_...
-STRIPE_TEST_WEBHOOK_SECRET=whsec_...
-```
+### Key Management
 
-### Required for Live Mode
-```bash
-STRIPE_MODE=live
-STRIPE_LIVE_SECRET_KEY=sk_live_...
-NEXT_PUBLIC_STRIPE_LIVE_PUBLISHABLE_KEY=pk_live_...
-STRIPE_LIVE_WEBHOOK_SECRET=whsec_...
-```
+- Store keys in your hosting platform's environment variables
+- Use different keys for different environments
+- Rotate keys periodically
+- Monitor key usage in Stripe dashboard
 
-### Optional (Plan-specific Price IDs)
-```bash
-# Test mode plans
-STRIPE_TEST_PRO_PRICE_ID=price_...
-STRIPE_TEST_FEATURED_PRICE_ID=price_...
+## Migration from Old Approach
 
-# Live mode plans
-STRIPE_LIVE_PRO_PRICE_ID=price_...
-STRIPE_LIVE_FEATURED_PRICE_ID=price_...
-``` 
+If you're migrating from the old approach that required price IDs:
+
+1. Remove these environment variables (no longer needed):
+   - `STRIPE_TEST_PRO_PRICE_ID`
+   - `STRIPE_TEST_FEATURED_PRICE_ID`
+   - `STRIPE_LIVE_PRO_PRICE_ID`
+   - `STRIPE_LIVE_FEATURED_PRICE_ID`
+
+2. Keep these environment variables:
+   - All the API keys (secret, publishable, webhook)
+   - `STRIPE_MODE` setting
+
+3. Products created in Stripe dashboard are no longer needed (but won't hurt if left)
+
+## Support
+
+If you encounter issues:
+
+1. Check the debug page at `/debug-stripe`
+2. Verify all environment variables are set correctly
+3. Test webhook delivery in Stripe dashboard
+4. Check application logs for specific error messages
+
+The modern approach eliminates most common configuration issues by removing the need for manual product setup! 

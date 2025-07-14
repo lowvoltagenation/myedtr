@@ -4,16 +4,81 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Star, Zap, ArrowRight, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Check, Crown, Star, Zap, ArrowRight, Loader2, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { TierBadge } from "@/components/ui/tier-badge";
 import { TIER_CONFIG } from "@/types/subscription";
 import { useStripe } from "@/hooks/useStripe";
 import { useSubscription } from "@/hooks/useSubscription";
 import { createClient } from "@/lib/supabase/client";
+import { getStripeMode } from "@/lib/stripe/client";
 import Link from "next/link";
 
 // Create supabase client once outside component to prevent recreations
 const supabase = createClient();
+
+// Debug component to show current Stripe mode and modern approach
+function StripeDebugInfo() {
+  const [stripeMode, setStripeMode] = useState<string>('');
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    if (typeof window !== 'undefined') {
+      try {
+        const mode = getStripeMode();
+        setStripeMode(mode);
+      } catch (error) {
+        console.error('Error getting Stripe mode:', error);
+        setStripeMode('unknown');
+      }
+    }
+  }, []);
+
+  // Only show in development mode
+  if (!isClient || process.env.NODE_ENV === 'production') {
+    return null;
+  }
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50">
+      <Card className="bg-gray-900 text-white border-gray-700">
+        <CardContent className="p-3">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm">
+              <CheckCircle className="w-4 h-4 text-green-400" />
+              <span className="font-medium">Stripe Mode:</span>
+              <Badge 
+                variant={stripeMode === 'live' ? 'destructive' : 'secondary'}
+                className={stripeMode === 'live' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}
+              >
+                {stripeMode.toUpperCase()}
+              </Badge>
+              {stripeMode === 'live' && (
+                <span className="text-red-400 text-xs">⚠️ Real payments!</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-300">
+              <Zap className="w-3 h-3" />
+              <span>Modern price_data approach</span>
+            </div>
+            <div className="text-xs text-gray-400 space-y-1">
+              <div>
+                <Link href="/debug-stripe" className="hover:text-white underline">
+                  Debug Stripe Config
+                </Link>
+              </div>
+              {stripeMode === 'test' && (
+                <div className="text-yellow-300">
+                  💡 Test mode: Webhooks may need manual sync
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
@@ -21,6 +86,7 @@ export default function PricingPage() {
   const [success, setSuccess] = useState(false);
   const [canceled, setCanceled] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const { createCheckoutSession, createPortalSession, loading, error } = useStripe();
   
@@ -39,6 +105,17 @@ export default function PricingPage() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'true') {
       setSuccess(true);
+      
+      // Refresh subscription data after successful payment
+      if (user?.id && subscription.refreshTier) {
+        console.log('🔄 Refreshing subscription data after successful payment...');
+        subscription.refreshTier().then(() => {
+          console.log('✅ Subscription data refreshed');
+        }).catch((error) => {
+          console.error('❌ Failed to refresh subscription data:', error);
+        });
+      }
+      
       // Clear the URL parameter
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -47,7 +124,7 @@ export default function PricingPage() {
       // Clear the URL parameter
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [isClient]);
+  }, [isClient, user?.id, subscription.refreshTier]);
 
   // Get current user
   useEffect(() => {
@@ -148,6 +225,50 @@ export default function PricingPage() {
     await createPortalSession();
   };
 
+  const handleManualSync = async () => {
+    if (!user || syncing) return;
+    
+    setSyncing(true);
+    try {
+      console.log('🔄 Manual subscription sync requested...');
+      
+      const response = await fetch('/api/stripe/sync-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Manual sync successful:', result);
+        
+        // Wait a moment, then refresh subscription data
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (subscription.refreshTier) {
+          await subscription.refreshTier();
+        }
+      } else {
+        const error = await response.json();
+        console.error('❌ Manual sync failed:', error);
+        
+        // Fallback to regular refresh
+        if (subscription.refreshTier) {
+          await subscription.refreshTier();
+        }
+      }
+    } catch (error) {
+      console.error('❌ Manual sync error:', error);
+      
+      // Fallback to regular refresh
+      if (subscription.refreshTier) {
+        await subscription.refreshTier();
+      }
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const getButtonConfig = (tier: any) => {
     const currentTier = subscription.tier;
     const isCurrentTier = currentTier === tier.id;
@@ -210,9 +331,38 @@ export default function PricingPage() {
           <div className="mb-8 mx-auto max-w-md">
             <div className="flex items-center gap-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4 text-green-800 dark:text-green-300">
               <CheckCircle className="w-5 h-5" />
-              <div>
+              <div className="flex-1">
                 <p className="font-medium">Payment successful!</p>
                 <p className="text-sm">Your subscription has been activated.</p>
+                {subscription.loading && (
+                  <div className="flex items-center gap-2 mt-2 text-xs">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <span>Updating subscription status...</span>
+                  </div>
+                )}
+                {!subscription.loading && subscription.tier === 'free' && (
+                  <div className="mt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleManualSync}
+                      disabled={syncing}
+                      className="text-xs h-6 px-2 border-green-300 text-green-700 hover:bg-green-100"
+                    >
+                      {syncing ? (
+                        <>
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          Syncing...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Refresh Status
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -463,6 +613,9 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
+
+      {/* Debug Info Component */}
+      <StripeDebugInfo />
     </div>
   );
 } 

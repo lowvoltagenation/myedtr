@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "audit:dark-mode": "node scripts/audit-dark-mode.js",
-    "check:dark-mode": "npm run audit:dark-mode && echo 'Light/dark mode consistency check complete. Check light-dark-mode-consistency-report.json for details.'"
+    "check:dark-mode": "npm run audit:dark-mode && echo 'Light/dark mode consistency check complete. Check light-dark-mode-consistency-report.json for details.'",
+    "stripe:test": "node scripts/stripe-mode-switch.js test",
+    "stripe:live": "node scripts/stripe-mode-switch.js live",
+    "stripe:status": "node scripts/stripe-mode-switch.js status"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",

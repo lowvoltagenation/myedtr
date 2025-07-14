@@ -275,10 +275,35 @@ export function useSubscription(userId?: string): UseSubscriptionResult {
   }, [userId, disableSubscriptions]);
 
   const refreshTier = useCallback(async () => {
-    if (errorCount.current < 3 && !disableSubscriptions) {
+    if (errorCount.current < 3 && !disableSubscriptions && userId) {
+      console.log('🔄 Refreshing subscription data...');
+      
+      try {
+        // First try to sync with Stripe directly (useful for test mode)
+        const response = await fetch('/api/stripe/sync-subscription', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('✅ Subscription synced with Stripe:', result);
+          
+          // Wait a moment for database to update, then refresh local data
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } else {
+          console.warn('⚠️ Stripe sync failed, falling back to local refresh');
+        }
+      } catch (error) {
+        console.warn('⚠️ Stripe sync error, falling back to local refresh:', error);
+      }
+      
+      // Always refresh local data after sync attempt
       await loadTierData();
     }
-  }, [loadTierData, disableSubscriptions]);
+  }, [loadTierData, disableSubscriptions, userId]);
 
   return {
     tier,

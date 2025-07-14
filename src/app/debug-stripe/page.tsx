@@ -34,6 +34,8 @@ function SubscriptionSyncTool() {
     setSyncError(null);
 
     try {
+      console.log('🔄 Starting subscription sync...');
+      
       const response = await fetch('/api/stripe/sync-subscription', {
         method: 'POST',
         headers: {
@@ -41,7 +43,21 @@ function SubscriptionSyncTool() {
         },
       });
 
-      const result = await response.json();
+      console.log('📡 Sync API Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
+      let result;
+      try {
+        result = await response.json();
+        console.log('📋 Sync API Result:', result);
+      } catch (parseError) {
+        console.error('❌ Failed to parse response as JSON:', parseError);
+        setSyncError(`Failed to parse response: ${response.status} ${response.statusText}`);
+        return;
+      }
 
       if (response.ok) {
         setSyncResult(result);
@@ -52,12 +68,18 @@ function SubscriptionSyncTool() {
           window.location.reload();
         }, 2000);
       } else {
-        setSyncError(result.error || 'Failed to sync subscription');
-        console.error('❌ Subscription sync failed:', result);
+        const errorMessage = result?.error || `HTTP ${response.status}: ${response.statusText}`;
+        setSyncError(errorMessage);
+        console.error('❌ Subscription sync failed:', {
+          status: response.status,
+          result,
+          errorMessage
+        });
       }
     } catch (error) {
-      setSyncError(error instanceof Error ? error.message : 'Network error');
-      console.error('❌ Subscription sync error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Network error';
+      setSyncError(errorMessage);
+      console.error('❌ Subscription sync network error:', error);
     } finally {
       setSyncing(false);
     }

@@ -159,7 +159,7 @@ export default function ApplyToProjectPage() {
     }
 
     if (!proposedRate || isNaN(Number(proposedRate)) || Number(proposedRate) <= 0) {
-      setError('Please enter a valid hourly rate');
+      setError('Please enter a valid price per video');
       return;
     }
 
@@ -433,7 +433,7 @@ export default function ApplyToProjectPage() {
                       <h4 className="font-medium text-gray-900 dark:text-white mb-2">Proposed Rate</h4>
                       <div className="flex items-center gap-1 text-lg font-semibold text-gray-900 dark:text-white">
                         <DollarSign className="h-5 w-5" />
-                        <span>${existingApplication.proposed_rate}/hour</span>
+                        <span>${existingApplication.proposed_rate}/video</span>
                       </div>
                     </div>
 
@@ -482,7 +482,7 @@ export default function ApplyToProjectPage() {
 
                     {/* Proposed Rate */}
                     <div>
-                      <Label htmlFor="proposedRate" className="dark:text-foreground">Your Hourly Rate *</Label>
+                      <Label htmlFor="proposedRate" className="dark:text-foreground">Price per Video *</Label>
                       <div className="relative mt-2">
                         <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-muted-foreground h-4 w-4" />
                         <Input

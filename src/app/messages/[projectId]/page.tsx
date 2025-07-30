@@ -11,7 +11,7 @@ import Link from "next/link";
 import { ArrowLeft, Send, User, Calendar, DollarSign, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, useAvatar } from "@/hooks/useAuth";
 
 interface Message {
   id: string;
@@ -58,13 +58,28 @@ export default function MessagesPage() {
   const router = useRouter();
   const params = useParams();
   const projectId = params.projectId as string;
-  const { user, profile, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated, loading: authLoading, hydrated } = useAuth();
+  const { avatarUrl: currentUserAvatar, fallbackLetter: currentUserFallback } = useAvatar();
+
+  // Cache-busting function for avatars
+  const addCacheBuster = (url: string | null | undefined): string | null => {
+    if (!url) return null;
+    const timestamp = Date.now();
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}t=${timestamp}`;
+  };
 
   useEffect(() => {
-    if (user && profile) {
-      fetchData();
+    if (hydrated && !authLoading) {
+      if (!isAuthenticated) {
+        router.push('/login');
+        return;
+      }
+      if (user && profile) {
+        fetchData();
+      }
     }
-  }, [user, profile, projectId]);
+  }, [hydrated, authLoading, isAuthenticated, user, profile, projectId, router]);
 
   // Separate effect for real-time subscription to avoid conflicts
   useEffect(() => {
@@ -236,10 +251,10 @@ export default function MessagesPage() {
           
           if (msg.sender?.user_type === 'editor') {
             senderName = msg.sender?.editor_profiles?.[0]?.name || 'Editor';
-            senderAvatar = msg.sender?.editor_profiles?.[0]?.avatar_url || msg.sender?.avatar_url;
+            senderAvatar = addCacheBuster(msg.sender?.editor_profiles?.[0]?.avatar_url || msg.sender?.avatar_url);
           } else if (msg.sender?.user_type === 'client') {
             senderName = msg.sender?.name || 'Client';
-            senderAvatar = msg.sender?.avatar_url;
+            senderAvatar = addCacheBuster(msg.sender?.avatar_url);
           }
           
           return {
@@ -376,10 +391,10 @@ export default function MessagesPage() {
           
           if (msg.sender?.user_type === 'editor') {
             senderName = msg.sender?.editor_profiles?.[0]?.name || 'Editor';
-            senderAvatar = msg.sender?.editor_profiles?.[0]?.avatar_url || msg.sender?.avatar_url;
+            senderAvatar = addCacheBuster(msg.sender?.editor_profiles?.[0]?.avatar_url || msg.sender?.avatar_url);
           } else if (msg.sender?.user_type === 'client') {
             senderName = msg.sender?.name || 'Client';
-            senderAvatar = msg.sender?.avatar_url;
+            senderAvatar = addCacheBuster(msg.sender?.avatar_url);
           }
           
           console.log('🔍 Final message data:', {
@@ -428,7 +443,7 @@ export default function MessagesPage() {
       created_at: new Date().toISOString(),
       sender_name: 'You',
       sender_type: profile?.user_type,
-      sender_avatar_url: profile?.avatar_url
+      sender_avatar_url: currentUserAvatar
     };
 
     // Add optimistic message immediately
@@ -483,7 +498,7 @@ export default function MessagesPage() {
 
 
 
-  if (loading) {
+  if (!hydrated || authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-muted/20 p-6">
         <div className="max-w-4xl mx-auto">
@@ -561,7 +576,7 @@ export default function MessagesPage() {
                       >
                         {/* Avatar - show on left for others, right for own messages */}
                         {!isOwnMessage && (
-                          <Avatar className="w-8 h-8 shrink-0">
+                          <Avatar className="w-8 h-8 shrink-0" key={message.sender_avatar_url || message.sender_id}>
                             <AvatarImage src={message.sender_avatar_url || undefined} />
                             <AvatarFallback className="text-xs">
                               {fallbackLetter}
@@ -597,10 +612,10 @@ export default function MessagesPage() {
                         
                         {/* Avatar for own messages on the right */}
                         {isOwnMessage && (
-                          <Avatar className="w-8 h-8 shrink-0">
-                            <AvatarImage src={message.sender_avatar_url || undefined} />
+                          <Avatar className="w-8 h-8 shrink-0" key={currentUserAvatar || user?.id}>
+                            <AvatarImage src={currentUserAvatar || undefined} />
                             <AvatarFallback className="text-xs">
-                              {fallbackLetter}
+                              {currentUserFallback}
                             </AvatarFallback>
                           </Avatar>
                         )}

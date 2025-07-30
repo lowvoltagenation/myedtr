@@ -124,13 +124,21 @@ export function useHasTier(requiredTier: 'free' | 'pro' | 'premium') {
 export function useAvatar() {
   const { profile, user, refreshProfile } = useAuth();
   
-  const avatarUrl = profile?.avatar_url;
+  // Add cache-busting to avatar URLs
+  const addCacheBuster = (url: string | null | undefined): string | null => {
+    if (!url) return null;
+    const timestamp = Date.now();
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}t=${timestamp}`;
+  };
+  
+  const avatarUrl = addCacheBuster(profile?.avatar_url);
   const fallbackLetter = (profile?.name || user?.email || 'U').charAt(0).toUpperCase();
   
   return {
     avatarUrl,
     fallbackLetter,
-    hasAvatar: !!avatarUrl,
+    hasAvatar: !!profile?.avatar_url, // Check original URL, not cache-busted
     retryAvatar: refreshProfile, // Built-in retry mechanism
   };
 }

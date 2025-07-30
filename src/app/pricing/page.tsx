@@ -382,7 +382,7 @@ export default function PricingPage() {
 
         {error && (
           <div className="mb-8 mx-auto max-w-md">
-            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
               <XCircle className="w-5 h-5" />
               <div>
                 <p className="font-medium">Payment error</p>
@@ -394,7 +394,7 @@ export default function PricingPage() {
 
         {subscription.error && (
           <div className="mb-8 mx-auto max-w-md">
-            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
               <XCircle className="w-5 h-5" />
               <div>
                 <p className="font-medium">Subscription Error</p>

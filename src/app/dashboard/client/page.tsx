@@ -164,23 +164,25 @@ async function ClientDashboardContent() {
               ) : (
                 <div className="space-y-4">
                   {activeProjects.slice(0, 3).map((project: any) => (
-                    <div key={project.id} className="border dark:border-border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">{project.title}</h3>
-                        <span className="text-sm text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
-                          {project.status}
-                        </span>
+                    <Link key={project.id} href={`/project/${project.id}`}>
+                      <div className="border dark:border-border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-semibold text-gray-900 dark:text-white">{project.title}</h3>
+                          <span className="text-sm text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
+                            {project.status}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 dark:text-muted-foreground text-sm mb-3 line-clamp-2">{project.description}</p>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-gray-500 dark:text-muted-foreground">
+                            {project.project_applications?.length || 0} applications
+                          </span>
+                          <span className="font-medium text-purple-600 dark:text-purple-400">
+                            ${project.budget}
+                          </span>
+                        </div>
                       </div>
-                      <p className="text-gray-600 dark:text-muted-foreground text-sm mb-3 line-clamp-2">{project.description}</p>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-500 dark:text-muted-foreground">
-                          {project.project_applications?.length || 0} applications
-                        </span>
-                        <span className="font-medium text-purple-600 dark:text-purple-400">
-                          ${project.budget}
-                        </span>
-                      </div>
-                    </div>
+                    </Link>
                   ))}
                   {activeProjects.length > 3 && (
                     <div className="text-center pt-4">

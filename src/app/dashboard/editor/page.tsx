@@ -32,6 +32,24 @@ async function EditorDashboardContent() {
     .eq('user_id', user.id)
     .single();
 
+  // Get user's subscription status
+  const { data: subscription, error: subscriptionError } = await supabase
+    .from('subscriptions')
+    .select('*')
+    .eq('user_id', user.id)
+    .single();
+
+  // Debug logging
+  console.log('Subscription data:', subscription);
+  console.log('Subscription error:', subscriptionError);
+  if (subscriptionError) {
+    console.log('Subscription error details:', JSON.stringify(subscriptionError, null, 2));
+  }
+  if (subscription) {
+    console.log('All subscription fields:', Object.keys(subscription));
+    console.log('Full subscription object:', JSON.stringify(subscription, null, 2));
+  }
+
   // If no profile exists, redirect to create one
   if (!profile) {
     redirect("/dashboard/editor/create-profile");
@@ -89,12 +107,22 @@ async function EditorDashboardContent() {
                   Messages
                 </Button>
               </Link>
-              <Link href="/pricing" className="w-full md:w-auto">
-                <Button variant="outline" size="lg" className="w-full md:w-auto bg-gradient-to-r from-purple-500 to-blue-500 text-white border-none hover:from-purple-600 hover:to-blue-600">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Upgrade Plan
-                </Button>
-              </Link>
+              {(() => {
+                // Default to 'free' if no subscription record exists
+                const tierLevel = subscription?.tier_id || 'free';
+                console.log('Checking upgrade button condition:');
+                console.log('subscription:', subscription);
+                console.log('tierLevel (with fallback):', tierLevel);
+                console.log('Should show button:', tierLevel === 'free');
+                return tierLevel === 'free';
+              })() && (
+                <Link href="/pricing" className="w-full md:w-auto">
+                  <Button variant="outline" size="lg" className="w-full md:w-auto bg-gradient-to-r from-purple-500 to-blue-500 text-white border-none hover:from-purple-600 hover:to-blue-600">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Upgrade Plan
+                  </Button>
+                </Link>
+              )}
               <Link href="/dashboard/editor/browse-projects" className="w-full md:w-auto">
                 <Button size="lg" className="w-full md:w-auto border border-purple-600 dark:border-purple-500">
                   <Briefcase className="w-4 h-4 mr-2" />
@@ -143,17 +171,6 @@ async function EditorDashboardContent() {
             </CardContent>
           </Card>
           
-          <Card className="border-gray-200 dark:border-gray-700">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Settings className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Profile Status</p>
-                  
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Main Content */}

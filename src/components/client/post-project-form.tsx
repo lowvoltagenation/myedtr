@@ -111,17 +111,17 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <p className="text-red-600 text-sm">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-md p-4 dark:bg-red-900/20 dark:border-red-800">
+          <p className="text-red-600 text-sm dark:text-red-400">{error}</p>
         </div>
       )}
 
       {/* Basic Information */}
       <div className="space-y-6">
-        <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Basic Information</h3>
         
         <div className="space-y-2">
-          <Label htmlFor="title">Project Title *</Label>
+          <Label htmlFor="title" className="dark:text-foreground">Project Title *</Label>
           <Input
             id="title"
             value={formData.title}
@@ -132,7 +132,7 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="description">Project Description *</Label>
+          <Label htmlFor="description" className="dark:text-foreground">Project Description *</Label>
           <textarea
             id="description"
             value={formData.description}
@@ -140,18 +140,18 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
             placeholder="Describe your project in detail. What type of video editing do you need? What's the story you want to tell?"
             rows={4}
             required
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="project_type">Project Type</Label>
+            <Label htmlFor="project_type" className="dark:text-foreground">Project Type</Label>
             <select
               id="project_type"
               value={formData.project_type}
               onChange={(e) => setFormData(prev => ({ ...prev, project_type: e.target.value }))}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
             >
               <option value="">Select project type</option>
               {PROJECT_TYPES.map((type) => (
@@ -161,7 +161,7 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="video_length">Expected Video Length</Label>
+            <Label htmlFor="video_length" className="dark:text-foreground">Expected Video Length</Label>
             <Input
               id="video_length"
               value={formData.video_length}
@@ -174,13 +174,13 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
 
       {/* Budget & Timeline */}
       <div className="space-y-6">
-        <h3 className="text-lg font-semibold text-gray-900">Budget & Timeline</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Budget & Timeline</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="budget">Budget (USD) *</Label>
+            <Label htmlFor="budget" className="dark:text-foreground">Budget (USD) *</Label>
             <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4" />
               <Input
                 id="budget"
                 type="number"
@@ -193,13 +193,13 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
                 required
               />
             </div>
-            <p className="text-xs text-gray-500">Total project budget</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Total project budget</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="deadline">Deadline *</Label>
+            <Label htmlFor="deadline" className="dark:text-foreground">Deadline *</Label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4" />
               <Input
                 id="deadline"
                 type="date"
@@ -214,7 +214,7 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
         </div>
 
         <div className="space-y-4">
-          <Label>Project Urgency</Label>
+          <Label className="dark:text-foreground">Project Urgency</Label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {URGENCY_LEVELS.map(({ value, label, color }) => (
               <button
@@ -224,11 +224,11 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
                 className={`p-4 rounded-lg border text-sm font-medium transition-all ${
                   formData.urgency === value
                     ? color === "green" 
-                      ? "bg-green-100 border-green-300 text-green-700"
+                      ? "bg-green-100 border-green-300 text-green-700 dark:bg-green-900/30 dark:border-green-600 dark:text-green-300"
                       : color === "yellow"
-                      ? "bg-yellow-100 border-yellow-300 text-yellow-700"
-                      : "bg-red-100 border-red-300 text-red-700"
-                    : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
+                      ? "bg-yellow-100 border-yellow-300 text-yellow-700 dark:bg-yellow-900/30 dark:border-yellow-600 dark:text-yellow-300"
+                      : "bg-red-100 border-red-300 text-red-700 dark:bg-red-900/30 dark:border-red-600 dark:text-red-300"
+                    : "bg-white border-gray-200 text-gray-700 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:border-gray-500"
                 }`}
               >
                 {label}
@@ -240,47 +240,47 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
 
       {/* Project Requirements */}
       <div className="space-y-6">
-        <h3 className="text-lg font-semibold text-gray-900">Project Requirements</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Project Requirements</h3>
         
         <div className="space-y-2">
-          <Label htmlFor="requirements">Specific Requirements</Label>
+          <Label htmlFor="requirements" className="dark:text-foreground">Specific Requirements</Label>
           <textarea
             id="requirements"
             value={formData.requirements}
             onChange={(e) => setFormData(prev => ({ ...prev, requirements: e.target.value }))}
             placeholder="List any specific requirements: software preferences, file formats, resolution, special effects needed, etc."
             rows={3}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="style_preferences">Style Preferences</Label>
+          <Label htmlFor="style_preferences" className="dark:text-foreground">Style Preferences</Label>
           <textarea
             id="style_preferences"
             value={formData.style_preferences}
             onChange={(e) => setFormData(prev => ({ ...prev, style_preferences: e.target.value }))}
             placeholder="Describe the style you're looking for: cinematic, documentary, fast-paced, minimalist, etc."
             rows={3}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="additional_notes">Additional Notes</Label>
+          <Label htmlFor="additional_notes" className="dark:text-foreground">Additional Notes</Label>
           <textarea
             id="additional_notes"
             value={formData.additional_notes}
             onChange={(e) => setFormData(prev => ({ ...prev, additional_notes: e.target.value }))}
             placeholder="Any other information that would help editors understand your project better"
             rows={3}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
       </div>
 
       {/* Submit */}
-      <div className="pt-6 border-t">
+      <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
         <Button type="submit" disabled={loading} className="w-full" size="lg">
           {loading ? (
             <>
@@ -291,7 +291,7 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
             "Post Project"
           )}
         </Button>
-        <p className="text-sm text-gray-500 text-center mt-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-3">
           Your project will be visible to all editors immediately after posting
         </p>
       </div>

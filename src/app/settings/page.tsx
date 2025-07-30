@@ -232,8 +232,8 @@ export default function SettingsPage() {
 
         {/* Messages */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600 text-sm flex items-center">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
+            <p className="text-red-600 text-sm flex items-center dark:text-red-400">
               <AlertTriangle className="w-4 h-4 mr-2" />
               {error}
             </p>
@@ -241,8 +241,8 @@ export default function SettingsPage() {
         )}
 
         {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-600 text-sm flex items-center">
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800">
+            <p className="text-green-600 text-sm flex items-center dark:text-green-400">
               <CheckCircle className="w-4 h-4 mr-2" />
               {success}
             </p>

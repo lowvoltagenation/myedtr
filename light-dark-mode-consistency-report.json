@@ -1,10 +1,10 @@
 {
-  "timestamp": "2025-07-08T02:30:42.146Z",
+  "timestamp": "2025-07-30T19:50:22.655Z",
   "summary": {
     "total": 59,
     "compliant": 4,
-    "needsWork": 12,
-    "missing": 43
+    "needsWork": 14,
+    "missing": 41
   },
   "details": {
     "compliant": [
@@ -60,8 +60,8 @@
       },
       {
         "file": "src/app/(auth)/signup/page.tsx",
-        "score": 60,
-        "status": "🟠 Needs Work",
+        "score": 80,
+        "status": "🟡 Mostly Consistent",
         "issues": [],
         "hasPatterns": {},
         "recommendations": []
@@ -83,10 +83,28 @@
         "recommendations": []
       },
       {
+        "file": "src/app/dashboard/editor/create-profile/page.tsx",
+        "score": 65,
+        "status": "🟠 Needs Work",
+        "issues": [],
+        "hasPatterns": {},
+        "recommendations": []
+      },
+      {
         "file": "src/app/dashboard/editor/page.tsx",
         "score": 80,
         "status": "🟡 Mostly Consistent",
         "issues": [],
+        "hasPatterns": {},
+        "recommendations": []
+      },
+      {
+        "file": "src/app/debug-stripe/page.tsx",
+        "score": 75,
+        "status": "🟡 Mostly Consistent",
+        "issues": [
+          "Links missing dark mode colors"
+        ],
         "hasPatterns": {},
         "recommendations": []
       },
@@ -199,18 +217,6 @@
         "recommendations": []
       },
       {
-        "file": "src/app/dashboard/editor/create-profile/page.tsx",
-        "score": 0,
-        "status": "❌ Missing Dark Mode Support",
-        "issues": [
-          "Background gradient missing dark mode variants",
-          "Text colors missing dark mode variants",
-          "Card components missing dark mode styling"
-        ],
-        "hasPatterns": {},
-        "recommendations": []
-      },
-      {
         "file": "src/app/layout.tsx",
         "score": 0,
         "status": "❌ Missing Dark Mode Support",
@@ -235,9 +241,7 @@
         "status": "❌ Missing Dark Mode Support",
         "issues": [
           "Text colors missing dark mode variants",
-          "Card components missing dark mode styling",
-          "Links missing dark mode colors",
-          "Loading states missing dark mode styling"
+          "Card components missing dark mode styling"
         ],
         "hasPatterns": {},
         "recommendations": []
@@ -338,12 +342,9 @@
       },
       {
         "file": "src/components/editor/create-profile-form.tsx",
-        "score": 0,
+        "score": 35,
         "status": "❌ Missing Dark Mode Support",
-        "issues": [
-          "Text colors missing dark mode variants",
-          "Error states missing dark mode styling"
-        ],
+        "issues": [],
         "hasPatterns": {},
         "recommendations": []
       },
@@ -384,21 +385,7 @@
         "status": "❌ Missing Dark Mode Support",
         "issues": [
           "Text colors missing dark mode variants",
-          "Card components missing dark mode styling",
-          "Error states missing dark mode styling"
-        ],
-        "hasPatterns": {},
-        "recommendations": []
-      },
-      {
-        "file": "src/components/profile/theme-selector.tsx",
-        "score": 0,
-        "status": "❌ Missing Dark Mode Support",
-        "issues": [
-          "Text colors missing dark mode variants",
-          "Card components missing dark mode styling",
-          "Loading states missing dark mode styling",
-          "Error states missing dark mode styling"
+          "Card components missing dark mode styling"
         ],
         "hasPatterns": {},
         "recommendations": []

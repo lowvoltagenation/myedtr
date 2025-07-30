@@ -1,33 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
-import { Eye, EyeOff, Loader2, Users, Briefcase } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
-export function SignupForm() {
+interface SignupFormProps {
+  initialUserType: "client" | "editor";
+}
+
+export function SignupForm({ initialUserType }: SignupFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [userType, setUserType] = useState<"client" | "editor">("client");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const searchParams = useSearchParams();
   const supabase = createClient();
-
-  useEffect(() => {
-    const type = searchParams.get("type");
-    if (type === "editor" || type === "client") {
-      setUserType(type);
-    }
-  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,9 +47,9 @@ export function SignupForm() {
         password,
         options: {
           data: {
-            user_type: userType,
+            user_type: initialUserType,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback?type=${userType}`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?type=${initialUserType}`,
         },
       });
 
@@ -77,7 +72,7 @@ export function SignupForm() {
         await new Promise(resolve => setTimeout(resolve, 500));
         
         // Redirect to appropriate dashboard
-        if (userType === "editor") {
+        if (initialUserType === "editor") {
           // Check if editor profile exists, if not redirect to create profile
           const { data: editorProfile } = await supabase
             .from('editor_profiles')
@@ -113,41 +108,6 @@ export function SignupForm() {
               {error}
             </div>
           )}
-
-          {/* User Type Selection */}
-          <div className="space-y-2">
-            <Label className="dark:text-foreground">I want to:</Label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setUserType("client")}
-                className={`p-4 border rounded-lg text-left transition-colors ${
-                  userType === "client"
-                    ? "border-purple-600 bg-purple-50 text-purple-700 dark:border-purple-500 dark:bg-purple-900/30 dark:text-purple-300"
-                    : "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600 dark:bg-gray-800/50 dark:text-gray-300"
-                }`}
-                disabled={isLoading}
-              >
-                <Briefcase className="h-5 w-5 mb-2" />
-                <div className="font-medium">Hire Editors</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Post projects and find talent</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setUserType("editor")}
-                className={`p-4 border rounded-lg text-left transition-colors ${
-                  userType === "editor"
-                    ? "border-purple-600 bg-purple-50 text-purple-700 dark:border-purple-500 dark:bg-purple-900/30 dark:text-purple-300"
-                    : "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600 dark:bg-gray-800/50 dark:text-gray-300"
-                }`}
-                disabled={isLoading}
-              >
-                <Users className="h-5 w-5 mb-2" />
-                <div className="font-medium">Offer Services</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Showcase skills and get hired</div>
-              </button>
-            </div>
-          </div>
 
           <div className="space-y-2">
             <Label htmlFor="email" className="dark:text-foreground">Email</Label>

@@ -274,7 +274,7 @@ export function CreateProfileForm({ userId }: CreateProfileFormProps) {
             id="portfolio_description"
             value={formData.portfolio_description}
             onChange={(e) => setFormData(prev => ({ ...prev, portfolio_description: e.target.value }))}
-            placeholder="Describe your best work, notable projects, or provide links to your portfolio..."
+            placeholder="Describe your best work, notable projects, or provide links to your portfolio. Example: Edited 100+ videos, generated 10M+ views, worked with brands like Nike and Apple..."
             rows={4}
             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400"
           />

@@ -443,7 +443,7 @@ export default function MessagesPage() {
       created_at: new Date().toISOString(),
       sender_name: 'You',
       sender_type: profile?.user_type,
-      sender_avatar_url: currentUserAvatar
+      sender_avatar_url: currentUserAvatar || undefined
     };
 
     // Add optimistic message immediately

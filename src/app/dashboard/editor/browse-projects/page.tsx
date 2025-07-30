@@ -38,7 +38,7 @@ const PROJECT_TYPES = [
   'Other'
 ];
 
-const URGENCY_LEVELS = ['standard', 'urgent', 'rush'];
+const URGENCY_LEVELS = ['low', 'medium', 'high'];
 
 export default function BrowseProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -248,8 +248,8 @@ export default function BrowseProjectsPage() {
                     <div className="flex flex-col gap-1">
                       {project.urgency && (
                         <Badge variant={
-                          project.urgency === 'rush' ? 'destructive' : 
-                          project.urgency === 'urgent' ? 'default' : 
+                          project.urgency === 'high' ? 'destructive' : 
+                          project.urgency === 'medium' ? 'default' : 
                           'secondary'
                         }>
                           {project.urgency}

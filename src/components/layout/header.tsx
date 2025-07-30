@@ -174,7 +174,7 @@ export function Header() {
               {/* Theme Toggle */}
               <ThemeToggle />
               
-              {(loading || !hydrated) ? (
+              {!hydrated || loading ? (
                 <div className="flex items-center space-x-3">
                   <div className="w-16 h-8 bg-gray-200 dark:bg-muted rounded animate-pulse" />
                   <div className="w-12 h-8 bg-gray-200 dark:bg-muted rounded animate-pulse" />
@@ -200,9 +200,7 @@ export function Header() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
-                        {loading ? (
-                          <div className="h-8 w-8 bg-gray-200 dark:bg-muted rounded-full animate-pulse" />
-                        ) : hasAvatar ? (
+                        {hasAvatar ? (
                           <img
                             src={avatarUrl!}
                             alt={profile?.name || user?.email || "User"}
@@ -228,13 +226,9 @@ export function Header() {
                         <div className="flex flex-col space-y-2">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-medium leading-none">
-                              {loading ? (
-                                <span className="h-4 bg-gray-200 dark:bg-muted rounded w-20 block animate-pulse"></span>
-                              ) : (
-                                profile?.name || user?.email?.split('@')[0] || "User"
-                              )}
+                              {profile?.name || user?.email?.split('@')[0] || "User"}
                             </p>
-                            {!subscription.loading && !loading && (
+                            {!subscription.loading && (
                               <TierBadge tier={subscription.tier} size="sm" />
                             )}
                           </div>

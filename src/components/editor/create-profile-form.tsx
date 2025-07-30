@@ -14,7 +14,7 @@ const SPECIALTIES = [
   "Color Grading",
   "Sound Design/Audio",
   "Animation",
-  "Short-Form Content (TikTok/Instagram/YouTube Shorts)",
+  "Short-Form Content",
   "Long-Form Content (YouTube/Podcasts)"
 ];
 

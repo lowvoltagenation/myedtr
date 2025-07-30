@@ -197,18 +197,26 @@ export class StripeService {
     // Map Stripe plan to our tier system
     const tierLevel = plan === 'pro' ? 'pro' : 'featured';
 
-    // Update subscription in database
-    await this.supabase
+    // Upsert subscription in database (insert if not exists, update if exists)
+    const { error } = await this.supabase
       .from('subscriptions')
-      .update({
+      .upsert({
+        user_id: userId,
         stripe_subscription_id: subscription.id,
+        stripe_customer_id: subscription.customer,
         tier_id: tierLevel,
         status: subscription.status,
         current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
         current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
         updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', userId);
+      }, {
+        onConflict: 'user_id'
+      });
+
+    if (error) {
+      console.error('Error upserting subscription:', error);
+      throw error;
+    }
 
     console.log(`Subscription created for user ${userId}: ${plan} tier in ${STRIPE_MODE} mode`);
   }
@@ -235,16 +243,26 @@ export class StripeService {
     const plan = subscription.metadata.plan;
     const tierLevel = plan === 'pro' ? 'pro' : 'featured';
 
-    await this.supabase
+    // Upsert subscription data - use user_id from metadata
+    const { error } = await this.supabase
       .from('subscriptions')
-      .update({
+      .upsert({
+        user_id: userId,
+        stripe_subscription_id: subscription.id,
+        stripe_customer_id: subscription.customer,
         tier_id: tierLevel,
         status: subscription.status,
         current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
         current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
         updated_at: new Date().toISOString(),
-      })
-      .eq('stripe_subscription_id', subscription.id);
+      }, {
+        onConflict: 'user_id'
+      });
+
+    if (error) {
+      console.error('Error updating subscription:', error);
+      throw error;
+    }
 
     console.log(`Subscription updated for user ${userId}: ${subscription.status} in ${STRIPE_MODE} mode`);
   }
@@ -261,14 +279,32 @@ export class StripeService {
       subscriptionMode
     });
 
-    await this.supabase
-      .from('subscriptions')
-      .update({
-        tier_id: 'free',
-        status: 'cancelled',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('stripe_subscription_id', subscription.id);
+    // Get user_id from subscription to properly update
+    const userId = subscription.metadata?.user_id;
+    if (userId) {
+      await this.supabase
+        .from('subscriptions')
+        .upsert({
+          user_id: userId,
+          stripe_subscription_id: subscription.id,
+          stripe_customer_id: subscription.customer,
+          tier_id: 'free',
+          status: 'cancelled',
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id'
+        });
+    } else {
+      // Fallback if no user_id in metadata
+      await this.supabase
+        .from('subscriptions')
+        .update({
+          tier_id: 'free',
+          status: 'cancelled',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('stripe_subscription_id', subscription.id);
+    }
 
     console.log(`Subscription cancelled: ${subscription.id} in ${STRIPE_MODE} mode`);
   }

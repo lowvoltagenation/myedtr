@@ -114,13 +114,15 @@ export async function POST(request: NextRequest) {
       
       await supabase
         .from('subscriptions')
-        .update({
+        .upsert({
+          user_id: user.id,
           tier_id: 'free',
           status: 'inactive',
           stripe_subscription_id: null,
           updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.id);
+        }, {
+          onConflict: 'user_id'
+        });
 
       return NextResponse.json({
         success: true,

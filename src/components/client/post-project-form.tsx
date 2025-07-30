@@ -45,7 +45,6 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
     urgency: "low",
     requirements: "",
     video_length: "",
-    style_preferences: "",
     additional_notes: ""
   });
 
@@ -79,7 +78,6 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
           urgency: formData.urgency,
           requirements: formData.requirements || null,
           video_length: formData.video_length || null,
-          style_preferences: formData.style_preferences || null,
           additional_notes: formData.additional_notes || null,
           status: 'open'
         });
@@ -254,17 +252,6 @@ export function PostProjectForm({ userId }: PostProjectFormProps) {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="style_preferences" className="dark:text-foreground">Style Preferences</Label>
-          <textarea
-            id="style_preferences"
-            value={formData.style_preferences}
-            onChange={(e) => setFormData(prev => ({ ...prev, style_preferences: e.target.value }))}
-            placeholder="Describe the style you're looking for: cinematic, documentary, fast-paced, minimalist, etc."
-            rows={3}
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          />
-        </div>
 
         <div className="space-y-2">
           <Label htmlFor="additional_notes" className="dark:text-foreground">Additional Notes</Label>

@@ -3,19 +3,16 @@
 import * as React from "react"
 import { useTheme } from "next-themes"
 import { Moon, Sun, Monitor } from "lucide-react"
+import { useHydration } from "@/contexts/HydrationContext"
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
+  const { isHydrated } = useHydration()
 
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
+  if (!isHydrated) {
     return (
       <div className="w-9 h-9 bg-background border border-border rounded-md flex items-center justify-center">
-        <div className="w-4 h-4 bg-muted rounded animate-pulse" />
+        <div className="w-4 h-4 bg-muted rounded" />
       </div>
     )
   }

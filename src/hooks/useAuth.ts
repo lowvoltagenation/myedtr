@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 import { AuthContext, type AuthContextType } from "@/contexts/AuthContext";
 
 // Main auth hook with full context - simplified
@@ -123,20 +123,23 @@ export function useHasTier(requiredTier: 'free' | 'pro' | 'premium') {
 // Avatar helpers with retry mechanism
 export function useAvatar() {
   const { profile, user, refreshProfile } = useAuth();
+  const [stableAvatarUrl, setStableAvatarUrl] = useState<string | null>(null);
   
-  // Add cache-busting to avatar URLs
-  const addCacheBuster = (url: string | null | undefined): string | null => {
-    if (!url) return null;
-    const timestamp = Date.now();
-    const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}t=${timestamp}`;
-  };
+  useEffect(() => {
+    // Only update avatar URL when profile actually changes
+    if (profile?.avatar_url && profile.avatar_url !== stableAvatarUrl?.split('?')[0]) {
+      const timestamp = Date.now();
+      const separator = profile.avatar_url.includes('?') ? '&' : '?';
+      setStableAvatarUrl(`${profile.avatar_url}${separator}t=${timestamp}`);
+    } else if (!profile?.avatar_url && stableAvatarUrl !== null) {
+      setStableAvatarUrl(null);
+    }
+  }, [profile?.avatar_url]);
   
-  const avatarUrl = addCacheBuster(profile?.avatar_url);
   const fallbackLetter = (profile?.name || user?.email || 'U').charAt(0).toUpperCase();
   
   return {
-    avatarUrl,
+    avatarUrl: stableAvatarUrl,
     fallbackLetter,
     hasAvatar: !!profile?.avatar_url, // Check original URL, not cache-busted
     retryAvatar: refreshProfile, // Built-in retry mechanism

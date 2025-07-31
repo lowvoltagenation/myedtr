@@ -38,18 +38,18 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { TierBadge } from "@/components/ui/tier-badge";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth, useAvatar } from "@/hooks/useAuth";
+import { useHydration } from "@/contexts/HydrationContext";
 import { createClient } from "@/lib/supabase/client";
 
 export function Header() {
-  // Auth context - simplified single source of truth
-  const { user, profile, isAuthenticated, isEditor, isClient, loading, hydrated } = useAuth();
+  // Auth context and hydration state
+  const { user, profile, isAuthenticated, isEditor, isClient, loading, hydrated } = useAuth(); 
   const { avatarUrl, fallbackLetter, hasAvatar, retryAvatar } = useAvatar();
-  
+  const { isHydrated } = useHydration();
   
   // Local component state
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   
   const router = useRouter();
   const pathname = usePathname();
@@ -68,11 +68,6 @@ export function Header() {
       }
     }
   }, [user?.id, subscription.refreshTier]);
-
-  // Handle theme hydration
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -108,27 +103,28 @@ export function Header() {
             {/* Logo */}
             <div className="flex items-center">
               <Link href="/" className="flex items-center">
-                {!mounted ? (
-                  // Show placeholder during hydration
-                  <div className="h-8 w-[120px] bg-muted rounded animate-pulse" />
-                ) : resolvedTheme === 'dark' ? (
-                  <Image 
-                    src="/logo-dark.svg" 
-                    alt="MyEdtr" 
-                    width={120} 
-                    height={32}
-                    className="h-8 w-auto" 
-                    priority
-                  />
+                {!isHydrated ? (
+                  // Show stable placeholder during initial hydration
+                  <div className="h-8 w-[120px] bg-muted rounded" />
                 ) : (
-                  <Image 
-                    src="/logo-light.svg" 
-                    alt="MyEdtr" 
-                    width={120} 
-                    height={32}
-                    className="h-8 w-auto" 
-                    priority
-                  />
+                  <>
+                    <Image 
+                      src="/logo-light.svg" 
+                      alt="MyEdtr" 
+                      width={120} 
+                      height={32}
+                      className="h-8 w-auto dark:hidden" 
+                      priority
+                    />
+                    <Image 
+                      src="/logo-dark.svg" 
+                      alt="MyEdtr" 
+                      width={120} 
+                      height={32}
+                      className="h-8 w-auto hidden dark:block" 
+                      priority
+                    />
+                  </>
                 )}
               </Link>
             </div>
@@ -174,10 +170,10 @@ export function Header() {
               {/* Theme Toggle */}
               <ThemeToggle />
               
-              {!hydrated || loading ? (
+              {!isHydrated ? (
                 <div className="flex items-center space-x-3">
-                  <div className="w-16 h-8 bg-gray-200 dark:bg-muted rounded animate-pulse" />
-                  <div className="w-12 h-8 bg-gray-200 dark:bg-muted rounded animate-pulse" />
+                  <div className="w-16 h-8 bg-muted rounded" />
+                  <div className="w-12 h-8 bg-muted rounded" />
                 </div>
               ) : isAuthenticated ? (
                 <>
@@ -200,9 +196,9 @@ export function Header() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
-                        {hasAvatar ? (
+                        {hasAvatar && avatarUrl ? (
                           <img
-                            src={avatarUrl!}
+                            src={avatarUrl}
                             alt={profile?.name || user?.email || "User"}
                             className="h-8 w-8 rounded-full object-cover"
                             onError={(e) => {
@@ -215,7 +211,7 @@ export function Header() {
                         ) : null}
                         <div 
                           className="h-8 w-8 rounded-full gradient-bg flex items-center justify-center text-white text-sm font-bold"
-                          style={{ display: hasAvatar ? 'none' : 'flex' }}
+                          style={{ display: hasAvatar && avatarUrl ? 'none' : 'flex' }}
                         >
                           {fallbackLetter}
                         </div>
